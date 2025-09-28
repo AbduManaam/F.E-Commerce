@@ -24,6 +24,9 @@ html,body{
   .max-padd-container {
     @apply mx-auto max-w-[1440px] px-4 lg:px-12;
   }
+  .max-padd-containerr {
+    @apply mx-auto max-w-[1550px] px-4 lg:px-12;
+  }
 
   .flexCenter {
     @apply flex items-center justify-center;
@@ -68,7 +71,7 @@ html,body{
 
 @layer utilities {
   .active-link {
-    @apply relative after:w-2.5 after:h-1 after:rounded-full after:bg-solid after:absolute after:-bottom-0.5 after:right-3;
+    @apply relative after:w-8.5 after:h-1 after:rounded-full after:bg-solid after:absolute after:-bottom-0.5 after:right-4;
   }
 
   h1 {

@@ -74,7 +74,7 @@ const Contact = () => {
           {/*  Success Message */}
           {submitted && (
             <p className="mt-4 text-green-600 font-medium text-center">
-              ✅ Your message has been submitted successfully!
+               Your message has been submitted successfully!
             </p>
           )}
         </div>

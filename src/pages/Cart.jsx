@@ -2,8 +2,9 @@
 import React, { useState } from "react";
 import { useCart } from "./CartContext";
 import axios from "axios";
+import { toast } from "react-toastify"; 
 
-const API_URL = "http://localhost:5000/orders"; // 👈 json-server orders endpoint
+const API_URL = "http://localhost:5000/orders"; 
 
 const Cart = () => {
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
@@ -19,15 +20,14 @@ const Cart = () => {
   const tax = subtotal * taxRate;
   const total = subtotal + shippingFee + tax;
 
-  // ✅ Place Order
+  //  Place Order
   const handleCheckout = async () => {
     if (cart.length === 0) {
-      alert("Your cart is empty!");
+      toast.warning("Your cart is empty! 🛒");
       return;
     }
 
     if (paymentMethod === "cod") {
-      // Cash on Delivery → Save order to backend
       try {
         await axios.post(API_URL, {
           items: cart,
@@ -39,16 +39,16 @@ const Cart = () => {
           status: "Pending",
           date: new Date().toISOString(),
         });
-        alert("Order placed successfully (Cash on Delivery) ✅");
+
+        toast.success("Order placed successfully (Cash on Delivery) ✅");
         clearCart();
       } catch (err) {
         console.error(err);
-        alert("Failed to place COD order ❌");
+        toast.error("Failed to place COD order ❌");
       }
     }
 
     if (paymentMethod === "stripe") {
-      // Stripe Checkout
       try {
         const res = await axios.post("http://localhost:5000/create-checkout", {
           items: cart,
@@ -56,11 +56,11 @@ const Cart = () => {
         });
 
         if (res.data.url) {
-          window.location.href = res.data.url; // redirect to Stripe
+          window.location.href = res.data.url;
         }
       } catch (err) {
         console.error(err);
-        alert("Order placed successfully (Stripe)");
+        toast.error("Stripe checkout failed ❌");
       }
     }
   };

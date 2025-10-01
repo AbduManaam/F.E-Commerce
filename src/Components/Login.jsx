@@ -15,7 +15,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isSignup, setIsSignup] = useState(false);
 
-  const { user, login, logout } = useAuth(); // use global auth
+  const { user, login, logout } = useAuth(); // global auth context
   const navigate = useNavigate();
   const API_URL = "http://localhost:5000/users";
 
@@ -43,6 +43,14 @@ export default function Login() {
     }
 
     try {
+      // ✅ Admin Login
+      if (!isSignup && email === "Admin@9539" && password === "7736") {
+        login({ id: "admin", name: "Admin", email }, true); // set admin flag
+        navigate("/admindash");
+        return;
+      }
+
+      // ✅ User Signup
       if (isSignup) {
         const existing = await axios.get(`${API_URL}?email=${email}`);
         if (existing.data.length > 0) {
@@ -50,12 +58,16 @@ export default function Login() {
           return;
         }
 
-        const newUser = { name, email, password, cart: [] };
+        // Add cart & wishlist arrays from start
+        const newUser = { name, email, password, cart: [], wishlist: [] };
         const res = await axios.post(API_URL, newUser);
 
-        login(res.data); // ✅ set global state
+        // ✅ Fetch full user with ID from JSON Server
+        const savedUser = await axios.get(`${API_URL}/${res.data.id}`);
+        login(savedUser.data);
         navigate("/");
       } else {
+        // ✅ User Login
         const res = await axios.get(`${API_URL}?email=${email}`);
         const foundUser = res.data[0];
 
@@ -68,7 +80,7 @@ export default function Login() {
           return;
         }
 
-        login(foundUser); // ✅ set global state
+        login(foundUser); // has id, cart, wishlist
         navigate("/");
       }
     } catch (err) {

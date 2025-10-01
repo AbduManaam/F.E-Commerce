@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../assets/data";
@@ -8,20 +9,19 @@ import { useCart } from "../pages/CartContext";
 import { useWishlist } from "../pages/WishlistContext";
 import { useAuth } from "./AuthContext";
 
-
 const Header = () => {
   const [menuOpened, setmenuOpened] = useState(false);
   const toggleMenu = () => setmenuOpened((prev) => !prev);
 
   const { cart } = useCart();
   const { wishlist } = useWishlist();
-  const { user, logout } = useAuth(); // ✅ context
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
 
   const handleLogout = () => {
-    logout(); // ✅ update via context
+    logout();
     navigate("/login");
   };
 
@@ -39,12 +39,25 @@ const Header = () => {
         {/* Desktop Nav */}
         <div className="hidden lg:flex gap-x-5 xl:gap-x-12 medium-15 p-1">
           <NavBar setmenuOpened={setmenuOpened} direction="row" />
+
+          {/* ✅ My Orders link only if user logged in */}
+          {user && (
+            <button
+              onClick={() => navigate("/myorders")}
+              className="font-bold transition-colors"
+            >
+              My Orders
+            </button>
+          )}
         </div>
 
         {/* Wishlist, Cart & Profile */}
         <div className="flex items-center gap-x-6">
           {/* Wishlist */}
-          <button onClick={() => navigate("/wishlist")} className="relative cursor-pointer">
+          <button
+            onClick={() => navigate("/wishlist")}
+            className="relative cursor-pointer"
+          >
             <span className="min-w-11 bg-white rounded-full p-2 flex items-center justify-center">
               ❤️
             </span>
@@ -56,7 +69,10 @@ const Header = () => {
           </button>
 
           {/* Cart */}
-          <button onClick={() => navigate("/cart")} className="relative cursor-pointer">
+          <button
+            onClick={() => navigate("/cart")}
+            className="relative cursor-pointer"
+          >
             <img
               src={assets.cartAdded}
               alt="cart"
@@ -71,7 +87,10 @@ const Header = () => {
 
           {/* Auth */}
           {user ? (
-            <button onClick={handleLogout} className="btn-solid flexCenter gap-2">
+            <button
+              onClick={handleLogout}
+              className="btn-solid flexCenter gap-2"
+            >
               Logout ({user.name})
               <img src={assets.user} alt="user" className="invert w-5" />
             </button>
@@ -88,6 +107,19 @@ const Header = () => {
       {menuOpened && (
         <div className="flex flex-col gap-y-6 fixed top-16 right-6 p-5 bg-white shadow-md w-52 ring-1 ring-slate-900/5 z-50">
           <NavBar setmenuOpened={setmenuOpened} direction="col" />
+
+          {/* ✅ My Orders in mobile menu */}
+          {user && (
+            <button
+              onClick={() => {
+                navigate("/myorders");
+                setmenuOpened(false);
+              }}
+              className="hover:text-indigo-600 text-left transition-colors"
+            >
+              My Orders
+            </button>
+          )}
         </div>
       )}
     </header>

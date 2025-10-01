@@ -1,12 +1,17 @@
 
 
-
 import React, { useState } from "react";
 import { useCart } from "../pages/CartContext";
 import { useWishlist } from "../pages/WishlistContext";
 
 const Items = ({ product }) => {
-  const [size, setSize] = useState(product.sizes ? product.sizes[0] : null);
+  // If product has sizes, default to "H", else null
+  const [size, setSize] = useState(
+    product.price && typeof product.price === "object"
+      ? Object.keys(product.price)[0] // first size key (H)
+      : null
+  );
+
   const { addToCart } = useCart();
   const { wishlist, toggleWishlist } = useWishlist();
   const currency = "$";
@@ -19,7 +24,6 @@ const Items = ({ product }) => {
     toggleWishlist(product);
   };
 
-  // check if already in wishlist
   const isInWishlist = wishlist.some((w) => w.id === product.id);
 
   return (
@@ -43,8 +47,8 @@ const Items = ({ product }) => {
             <img
               src={
                 isInWishlist
-                  ? "/images/other/white wishlist.png" // filled heart
-                  : "/images/other/wishlist.png"       // outline
+                  ? "/images/other/white wishlist.png"
+                  : "/images/other/wishlist.png"
               }
               alt="wishlist"
               className="w-5 h-5"
@@ -66,19 +70,19 @@ const Items = ({ product }) => {
       </div>
 
       {/* Sizes */}
-      {product.sizes && (
+      {product.price && typeof product.price === "object" && (
         <div className="flex justify-center gap-2 mt-3 flex-wrap">
-          {product.sizes.map((item, i) => (
+          {Object.keys(product.price).map((key) => (
             <button
-              key={i}
-              onClick={() => setSize(item)}
+              key={key}
+              onClick={() => setSize(key)}
               className={`px-3 py-1 text-xs rounded-full transition ${
-                item === size
+                key === size
                   ? "bg-solidOne text-white shadow-sm"
                   : "border border-gray-300 text-gray-700 hover:bg-gray-100"
               }`}
             >
-              {item}
+              {key}
             </button>
           ))}
         </div>
@@ -88,7 +92,9 @@ const Items = ({ product }) => {
       <div className="flex justify-between items-center mt-5 w-full">
         <span className="font-bold text-red-500 text-lg">
           {currency}
-          {size ? product.price[size] : product.price}
+          {size && product.price && typeof product.price === "object"
+            ? product.price[size]
+            : product.price}
         </span>
         <button
           onClick={handleAddToCart}

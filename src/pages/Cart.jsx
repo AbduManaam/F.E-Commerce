@@ -2,17 +2,20 @@
 import React, { useState } from "react";
 import { useCart } from "./CartContext";
 import axios from "axios";
-import { toast } from "react-toastify"; 
+import { toast } from "react-toastify";
+import { useAuth } from "../Components/AuthContext";
 
-const API_URL = "http://localhost:5000/orders"; 
+const API_URL = "http://localhost:5000/orders";
 
 const Cart = () => {
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
-  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const { user } = useAuth();
+  const [paymentMethod, setPaymentMethod] = useState("COD");
 
   const shippingFee = 10;
   const taxRate = 0.02;
 
+  // calculate totals
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price[item.size] * item.qty,
     0
@@ -20,48 +23,40 @@ const Cart = () => {
   const tax = subtotal * taxRate;
   const total = subtotal + shippingFee + tax;
 
-  //  Place Order
+  // place order
   const handleCheckout = async () => {
+    if (!user) {
+      toast.error("Please login to place an order 🚨");
+      return;
+    }
+
     if (cart.length === 0) {
       toast.warning("Your cart is empty! 🛒");
       return;
     }
 
-    if (paymentMethod === "cod") {
-      try {
-        await axios.post(API_URL, {
-          items: cart,
-          subtotal,
-          tax,
-          shippingFee,
-          total,
-          payment: "Cash on Delivery",
-          status: "Pending",
-          date: new Date().toISOString(),
-        });
+    try {
+      await axios.post(API_URL, {
+        userId: user.id, // ✅ link to logged in user
+        items: cart.map((item) => ({
+          productId: item.id,
+          quantity: item.qty,
+          size: item.size,
+        })),
+        amount: total,
+        addressId: 1, // ⚡ you can change this to real address
+        status: "Pending",
+        paymentMethod: paymentMethod === "COD" ? "COD" : "Online",
+        isPaid: paymentMethod !== "COD",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
 
-        toast.success("Order placed successfully (Cash on Delivery) ✅");
-        clearCart();
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to place COD order ❌");
-      }
-    }
-
-    if (paymentMethod === "stripe") {
-      try {
-        const res = await axios.post("http://localhost:5000/create-checkout", {
-          items: cart,
-          total,
-        });
-
-        if (res.data.url) {
-          window.location.href = res.data.url;
-        }
-      } catch (err) {
-        console.error(err);
-        toast.error("Stripe checkout failed ❌");
-      }
+      toast.success("Order placed successfully ✅");
+      clearCart();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to place order ❌");
     }
   };
 
@@ -128,34 +123,29 @@ const Cart = () => {
           Order Details ({cart.length} Items)
         </h2>
 
-        <p className="text-gray-500 text-sm md:text-base">
-          Shipping Address:{" "}
-          <span className="text-red-500 cursor-pointer">Change</span>
-        </p>
-
         {/* Payment Section */}
         <div>
           <p className="text-sm md:text-base font-semibold">Payment Method</p>
           <div className="flex gap-2 mt-2">
             <button
-              onClick={() => setPaymentMethod("cod")}
+              onClick={() => setPaymentMethod("COD")}
               className={`px-3 py-1 md:px-4 md:py-2 border rounded text-sm md:text-base ${
-                paymentMethod === "cod"
-                  ? "bg-solidOne text-white border-solidOne"
+                paymentMethod === "COD"
+                  ? "bg-blue-600 text-white border-blue-600"
                   : "bg-white"
               }`}
             >
               Cash On Delivery
             </button>
             <button
-              onClick={() => setPaymentMethod("stripe")}
+              onClick={() => setPaymentMethod("Online")}
               className={`px-3 py-1 md:px-4 md:py-2 border rounded text-sm md:text-base ${
-                paymentMethod === "stripe"
-                  ? "bg-solidOne text-white border-solidOne"
+                paymentMethod === "Online"
+                  ? "bg-blue-600 text-white border-blue-600"
                   : "bg-white"
               }`}
             >
-              Stripe
+              Online
             </button>
           </div>
         </div>
@@ -175,7 +165,7 @@ const Cart = () => {
 
         <button
           onClick={handleCheckout}
-          className="w-full bg-solidOne hover:bg-solidOne text-white py-2 md:py-3 lg:py-4 text-sm md:text-base lg:text-lg rounded mt-3"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 md:py-3 lg:py-4 text-sm md:text-base lg:text-lg rounded mt-3"
         >
           Proceed to Order
         </button>

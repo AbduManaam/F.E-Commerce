@@ -3,8 +3,9 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import Sidebar from "./Sidebar";
-import Navbar from "./Navbar";
+
+
+// import Navbar from "./Navbar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Routes, Route } from "react-router-dom";
 import DashboardHome from "./Pages/DashboardHome";
@@ -16,6 +17,7 @@ import UserCreate from "./UserPage/UserCreate"; // ✅ create user
 import UserView from "./UserPage/UserView";     // ✅ view user details
 import UserEdit from "./UserPage/UserEdit";     // ✅ edit user
 import OrdersPage from "./Pages/Orders/OrdersPage"; // ✅ Add this import
+import Sidebar from "./sidebar";
 
 const COLLAPSED_W = 80;
 const EXPANDED_W = 260;
@@ -52,10 +54,7 @@ export default function AdminDashboard() {
         {/* Sidebar menu */}
         <Sidebar collapsed={collapsed} />
       </motion.div>
-
-      {/* Top Navbar */}
-      <Navbar />
-
+           
       {/* Main Content */}
       <main
         className="flex-1 flex flex-col transition-all duration-300 ease-in-out"

@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 export default function ProductForm({ product, onSave, onClose }) {
   const [formData, setFormData] = useState({
     title: "",
-    price: { H: "", F: "" }, // ✅ structured price
+    price: { H: "", F: "" },
     stock: "",
     category: "",
     images: "",
@@ -18,7 +18,8 @@ export default function ProductForm({ product, onSave, onClose }) {
         price:
           typeof product.price === "object"
             ? product.price
-            : { H: product.price, F: "" }, // normalize old products
+            : { H: product.price, F: "" },
+        stock: product.stock || "",
       });
     }
   }, [product]);
@@ -40,11 +41,11 @@ export default function ProductForm({ product, onSave, onClose }) {
     onSave({
       ...formData,
       id: product?.id,
-      stock: String(formData.stock) || "",
+      stock: String(formData.stock) || "0",
       price: {
         H: Number(formData.price.H) || 0,
         F: Number(formData.price.F) || 0,
-      }, // ✅ always save as object
+      },
     });
   };
 
@@ -75,6 +76,8 @@ export default function ProductForm({ product, onSave, onClose }) {
             onChange={handleChange}
             placeholder="Price (H)"
             className="w-full border p-2 rounded"
+            min="0"
+            step="0.01"
             required
           />
 
@@ -86,17 +89,21 @@ export default function ProductForm({ product, onSave, onClose }) {
             onChange={handleChange}
             placeholder="Price (F)"
             className="w-full border p-2 rounded"
+            min="0"
+            step="0.01"
             required
           />
 
           {/* Stock */}
           <input
-            type="text"
+            type="number"
             name="stock"
             value={formData.stock}
             onChange={handleChange}
-            placeholder="Stock (e.g. 500 pcs)"
+            placeholder="Stock Quantity"
             className="w-full border p-2 rounded"
+            min="0"
+            required
           />
 
           {/* Category */}

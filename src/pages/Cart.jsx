@@ -1,16 +1,21 @@
 
+
+
 import React, { useState } from "react";
 import { useCart } from "./CartContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth } from "../Components/AuthContext";
 
-const API_URL = "http://localhost:5000/orders";
+const API_URL = "http://localhost:5000";
+const ORDERS_API = `${API_URL}/orders`;
+const PRODUCTS_API = `${API_URL}/products`;
 
 const Cart = () => {
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
   const { user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const shippingFee = 10;
   const taxRate = 0.02;
@@ -23,7 +28,37 @@ const Cart = () => {
   const tax = subtotal * taxRate;
   const total = subtotal + shippingFee + tax;
 
-  // place order
+  // ✅ Update product stock when order is placed
+  const updateProductStock = async (cartItems) => {
+    const updatePromises = cartItems.map(async (item) => {
+      try {
+        // Get current product
+        const productRes = await axios.get(`${PRODUCTS_API}/${item.id}`);
+        const product = productRes.data;
+        
+        // Parse current stock (handle both string and number)
+        const currentStock = parseInt(product.stock) || 0;
+        const orderedQty = item.qty;
+        
+        // Calculate new stock
+        const newStock = Math.max(0, currentStock - orderedQty);
+        
+        // Update product with new stock
+        await axios.patch(`${PRODUCTS_API}/${item.id}`, {
+          stock: newStock.toString()
+        });
+        
+        return { product: product.title, oldStock: currentStock, newStock, success: true };
+      } catch (error) {
+        console.error(`Failed to update stock for product ${item.id}:`, error);
+        return { product: item.title, success: false, error };
+      }
+    });
+
+    return Promise.all(updatePromises);
+  };
+
+  // ✅ Place order with stock update
   const handleCheckout = async () => {
     if (!user) {
       toast.error("Please login to place an order 🚨");
@@ -35,28 +70,57 @@ const Cart = () => {
       return;
     }
 
+    setIsProcessing(true);
+
     try {
-      await axios.post(API_URL, {
-        userId: user.id, // ✅ link to logged in user
+      // 1. Update product stocks
+      const stockUpdates = await updateProductStock(cart);
+      const failedUpdates = stockUpdates.filter(update => !update.success);
+      
+      if (failedUpdates.length > 0) {
+        toast.error("Some products stock couldn't be updated ❌");
+        return;
+      }
+
+      // 2. Create order
+      const orderData = {
+        userId: user.id,
         items: cart.map((item) => ({
           productId: item.id,
+          title: item.title,
           quantity: item.qty,
           size: item.size,
+          price: item.price[item.size],
+          images: item.images
         })),
         amount: total,
-        addressId: 1, // ⚡ you can change this to real address
+        subtotal: subtotal,
+        shippingFee: shippingFee,
+        tax: tax,
+        addressId: 1,
         status: "Pending",
         paymentMethod: paymentMethod === "COD" ? "COD" : "Online",
         isPaid: paymentMethod !== "COD",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+      };
+
+      await axios.post(ORDERS_API, orderData);
+
+      // 3. Show success message with stock updates
+      stockUpdates.forEach(update => {
+        if (update.success) {
+          console.log(`Stock updated for ${update.product}: ${update.oldStock} → ${update.newStock}`);
+        }
       });
 
-      toast.success("Order placed successfully ✅");
+      toast.success("Order placed successfully ✅ Stock updated!");
       clearCart();
     } catch (err) {
-      console.error(err);
+      console.error("Failed to place order:", err);
       toast.error("Failed to place order ❌");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -165,10 +229,25 @@ const Cart = () => {
 
         <button
           onClick={handleCheckout}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 md:py-3 lg:py-4 text-sm md:text-base lg:text-lg rounded mt-3"
+          disabled={isProcessing || cart.length === 0}
+          className={`w-full py-2 md:py-3 lg:py-4 text-sm md:text-base lg:text-lg rounded mt-3 ${
+            isProcessing || cart.length === 0
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700 text-white"
+          }`}
         >
-          Proceed to Order
+          {isProcessing ? "Processing..." : "Proceed to Order"}
         </button>
+
+        {/* Stock Warning */}
+        {cart.some(item => {
+          const stock = parseInt(item.stock) || 0;
+          return item.qty > stock;
+        }) && (
+          <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
+            ⚠️ Some items in your cart exceed available stock. Please adjust quantities.
+          </div>
+        )}
       </div>
     </div>
   );

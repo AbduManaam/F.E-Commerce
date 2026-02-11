@@ -1,6 +1,4 @@
 
-
-
 import React, { useEffect, useState } from "react";
 import Api from "../Api/Api";
 import Items from "../Components/items";

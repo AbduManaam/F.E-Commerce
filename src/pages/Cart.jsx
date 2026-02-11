@@ -195,7 +195,7 @@ const Cart = () => {
               onClick={() => setPaymentMethod("COD")}
               className={`px-3 py-1 md:px-4 md:py-2 border rounded text-sm md:text-base ${
                 paymentMethod === "COD"
-                  ? "bg-blue-600 text-white border-blue-600"
+                  ? "bg-red-500 text-white border-red-500"
                   : "bg-white"
               }`}
             >
@@ -205,7 +205,7 @@ const Cart = () => {
               onClick={() => setPaymentMethod("Online")}
               className={`px-3 py-1 md:px-4 md:py-2 border rounded text-sm md:text-base ${
                 paymentMethod === "Online"
-                  ? "bg-blue-600 text-white border-blue-600"
+                  ? "bg-red-500 text-white border-red-500"
                   : "bg-white"
               }`}
             >
@@ -233,7 +233,7 @@ const Cart = () => {
           className={`w-full py-2 md:py-3 lg:py-4 text-sm md:text-base lg:text-lg rounded mt-3 ${
             isProcessing || cart.length === 0
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
+              : "bg-red-500 hover:bg-red-600 text-white"
           }`}
         >
           {isProcessing ? "Processing..." : "Proceed to Order"}

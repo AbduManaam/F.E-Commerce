@@ -1,10 +1,10 @@
 
-
-
 import React from "react";
 import { NavLink } from "react-router-dom";
 
-const NavBar = ({ setmenuOpened, direction = "row" }) => {
+// const NavBar = ({ setmenuOpened, direction = "row" }) => {
+
+const NavBar = ({ setmenuOpened}) => {
   const navLinks = [
     { path: "/", title: "Home" },
     { path: "/menu", title: "Menu" },
@@ -13,11 +13,11 @@ const NavBar = ({ setmenuOpened, direction = "row" }) => {
 
   return (
     <nav
-      className={`flex  ${
-        direction === "col"
-          ? "flex-col items-start gap-4"
-          : "flex-row items-center gap-4"
-      }`}
+      // className={`flex  ${
+      //   direction === "col"
+      //     ? "flex-col items-start gap-4"
+      //     : "flex-row items-center gap-4"
+      // }`}
     >
       {navLinks.map((links) => (
         <NavLink

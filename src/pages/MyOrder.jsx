@@ -124,7 +124,7 @@ const MyOrders = () => {
               )}
             </div>
 
-            <div className="mt-4 text-sm text-gray-600">
+            <div className="mt-4 text-sm text-gray-600 ">
               <p>Payment: {paymentMethod}</p>
               <p>Status: {status}</p>
               <p className="font-bold">Total: ${amount.toFixed(2)}</p>

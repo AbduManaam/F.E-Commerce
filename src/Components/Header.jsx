@@ -1,6 +1,4 @@
 
-
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../assets/data";
@@ -8,10 +6,14 @@ import NavBar from "./NavBar";
 import { useCart } from "../pages/CartContext";
 import { useWishlist } from "../pages/WishlistContext";
 import { useAuth } from "./AuthContext";
+import MobileMenu from "./Mobile";
 
 const Header = () => {
   const [menuOpened, setmenuOpened] = useState(false);
+  const [mobileMenuOpened, setMobileMenuOpened] = useState(false);
+  
   const toggleMenu = () => setmenuOpened((prev) => !prev);
+  const toggleMobileMenu = () => setMobileMenuOpened((prev) => !prev);
 
   const { cart } = useCart();
   const { wishlist } = useWishlist();
@@ -26,7 +28,7 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 py-3 bg-amber-50">
+    <header className="fixed top-0 left-0 right-0 z-50 py-3 bg-amber-50 shadow-sm">
       <div className="max-padd-container flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
@@ -40,7 +42,7 @@ const Header = () => {
         <div className="hidden lg:flex gap-x-5 xl:gap-x-12 medium-15 p-1">
           <NavBar setmenuOpened={setmenuOpened} direction="row" />
 
-          {/* ✅ My Orders link only if user logged in */}
+          {/* My Orders link only if user logged in */}
           {user && (
             <button
               onClick={() => navigate("/myorders")}
@@ -51,18 +53,34 @@ const Header = () => {
           )}
         </div>
 
-        {/* Wishlist, Cart & Profile */}
-        <div className="flex items-center gap-x-6">
+        {/* Right side icons */}
+        <div className="flex items-center gap-x-4 sm:gap-x-6">
+          {/* Mobile Menu Icon - Visible only on small/medium screens */}
+          <div className="lg:hidden">
+            <button
+              onClick={toggleMobileMenu}
+              className="relative cursor-pointer p-2 rounded-full hover:bg-amber-100 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {/* Hamburger Icon */}
+              <div className="w-6 h-6 flex flex-col justify-center items-center">
+                <span className={`block h-0.5 w-6 bg-current transform transition duration-300 ease-in-out ${mobileMenuOpened ? 'rotate-45 translate-y-1.5' : '-translate-y-1'}`}></span>
+                <span className={`block h-0.5 w-6 bg-current transition-all duration-300 ease-in-out ${mobileMenuOpened ? 'opacity-0' : 'opacity-100'}`}></span>
+                <span className={`block h-0.5 w-6 bg-current transform transition duration-300 ease-in-out ${mobileMenuOpened ? '-rotate-45 -translate-y-1.5' : 'translate-y-1'}`}></span>
+              </div>
+            </button>
+          </div>
+
           {/* Wishlist */}
           <button
             onClick={() => navigate("/wishlist")}
             className="relative cursor-pointer"
           >
-            <span className="min-w-11 bg-white rounded-full p-2 flex items-center justify-center">
+            <span className="min-w-11 bg-white rounded-full p-2 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
               ❤️
             </span>
             {wishlist.length > 0 && (
-              <label className="absolute bottom-10 right-1 text-xs font-bold bg-pink-500 text-white flexCenter rounded-full w-5 h-5">
+              <label className="absolute -top-1 -right-1 text-xs font-bold bg-pink-500 text-white flexCenter rounded-full w-5 h-5">
                 {wishlist.length}
               </label>
             )}
@@ -76,26 +94,26 @@ const Header = () => {
             <img
               src={assets.cartAdded}
               alt="cart"
-              className="min-w-11 bg-white rounded-full p-2"
+              className="min-w-11 bg-white rounded-full p-2 shadow-sm hover:shadow-md transition-shadow"
             />
             {cartCount > 0 && (
-              <label className="absolute bottom-10 right-1 text-xs font-bold bg-red-500 text-white flexCenter rounded-full w-5 h-5">
+              <label className="absolute -top-1 -right-1 text-xs font-bold bg-red-500 text-white flexCenter rounded-full w-5 h-5">
                 {cartCount}
               </label>
             )}
           </button>
 
-          {/* Auth */}
+          {/* Desktop Auth - Hidden on mobile */}
           {user ? (
             <button
               onClick={handleLogout}
-              className="btn-solid flexCenter gap-2"
+              className="btn-solid flexCenter gap-2 hidden lg:flex"
             >
               Logout ({user.name})
               <img src={assets.user} alt="user" className="invert w-5" />
             </button>
           ) : (
-            <Link to="/login" className="btn-solid flexCenter gap-2">
+            <Link to="/login" className="btn-solid flexCenter gap-2 hidden lg:flex">
               Login
               <img src={assets.user} alt="user" className="invert w-5" />
             </Link>
@@ -103,12 +121,17 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Mobile Nav */}
+      {/* Mobile Menu Component */}
+      <MobileMenu 
+        isOpen={mobileMenuOpened} 
+        onClose={() => setMobileMenuOpened(false)} 
+      />
+
+      {/* Existing Menu (if you still need it for other purposes) */}
       {menuOpened && (
         <div className="flex flex-col gap-y-6 fixed top-16 right-6 p-5 bg-white shadow-md w-52 ring-1 ring-slate-900/5 z-50">
           <NavBar setmenuOpened={setmenuOpened} direction="col" />
 
-          {/* ✅ My Orders in mobile menu */}
           {user && (
             <button
               onClick={() => {

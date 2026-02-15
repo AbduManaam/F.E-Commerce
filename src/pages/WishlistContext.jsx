@@ -1,16 +1,15 @@
-
-
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Components/AuthContext";
+import { toast } from "react-toastify";
 
 const WishlistContext = createContext();
 const API_URL = "http://localhost:5000/users";
 
 export const WishlistProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
-  const { user } = useAuth();   // ✅ sync with AuthContext
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,11 +17,11 @@ export const WishlistProvider = ({ children }) => {
       axios
         .get(`${API_URL}/${user.id}`)
         .then((res) => setWishlist(res.data.wishlist || []))
-        .catch((err) => console.error("Failed to fetch wishlist:", err));
+        .catch((err) => console.error("Failed to fetch user wishlist:", err));
     } else {
       setWishlist([]);
     }
-  }, [user]);  // ✅ re-run whenever user changes
+  }, [user]);
 
   const syncWishlist = async (newWishlist) => {
     if (!user) return;
@@ -34,29 +33,52 @@ export const WishlistProvider = ({ children }) => {
     }
   };
 
-  const toggleWishlist = (product) => {
+  const addToWishlist = (product) => {
     if (!user) return navigate("/login");
 
-    const exists = wishlist.find((w) => w.id === product.id);
-    if (exists) {
-      syncWishlist(wishlist.filter((w) => w.id !== product.id));
-    } else {
-      syncWishlist([...wishlist, product]);
+    const existing = wishlist.find((item) => item.id === product.id);
+    
+    if (existing) {
+      toast.info("❤️ This product is already in your wishlist!");
+      return;
     }
+
+    const newWishlist = [...wishlist, product];
+    syncWishlist(newWishlist);
+    toast.success("❤️ Added to wishlist!");
+  };
+
+  const removeFromWishlist = (id) => {
+    if (!user) return navigate("/login");
+    syncWishlist(wishlist.filter((item) => item.id !== id));
+    toast.info("🗑️ Removed from wishlist");
   };
 
   const clearWishlist = () => {
     if (!user) return navigate("/login");
     syncWishlist([]);
+    toast.info("❤️ Wishlist cleared");
+  };
+
+  const value = {
+    wishlist,
+    addToWishlist,
+    removeFromWishlist,
+    clearWishlist
   };
 
   return (
-    <WishlistContext.Provider value={{ wishlist, toggleWishlist, clearWishlist }}>
+    <WishlistContext.Provider value={value}>
       {children}
     </WishlistContext.Provider>
   );
 };
 
-export const useWishlist = () => useContext(WishlistContext);
-
-
+// ✅ Export useWishlist hook
+export const useWishlist = () => {
+  const context = useContext(WishlistContext);
+  if (!context) {
+    throw new Error('useWishlist must be used within a WishlistProvider');
+  }
+  return context;
+};

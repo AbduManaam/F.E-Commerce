@@ -1,63 +1,69 @@
+import { useEffect, useState } from "react"
 
+export default function ProductForm({product,onSave,onClose}){
 
-import React, { useState, useEffect } from "react";
-
-export default function ProductForm({ product, onSave, onClose }) {
-  const [formData, setFormData] = useState({
-    title: "",
-    price: { H: "", F: "" },
-    stock: "",
-    category: "",
-    images: "",
-  });
-
-  useEffect(() => {
-    if (product) {
-      setFormData({
-        ...product,
-        price:
-          typeof product.price === "object"
-            ? product.price
-            : { H: product.price, F: "" },
-        stock: product.stock || "",
-      });
-    }
-  }, [product]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "H" || name === "F") {
-      setFormData({
-        ...formData,
-        price: { ...formData.price, [name]: value },
-      });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave({
-      ...formData,
-      id: product?.id,
-      stock: String(formData.stock) || "0",
-      price: {
-        H: Number(formData.price.H) || 0,
-        F: Number(formData.price.F) || 0,
-      },
+    const[formData,setFormData]=useState({
+        title:"",
+        image:"",
+        price:{H:"",F:""},
+        category:"",
+        stock:"",
     });
-  };
+    //    Setting Pro Details in Form
 
-  return (
+       useEffect(()=>{
+        if(product){
+            setFormData({
+                ...product,price:
+                typeof product.price==="object"? product.price:{H:product.price,F:""},
+                stock: product.stock||"",
+            })
+        }
+       },[product])
+
+            //  only assign formData.price to H because that’s the existing price.
+            //  leave F blank ("") to let the user enter it if needed.
+           // If  adding a new product and don’t enter stock, the form shows blank.
+           // If the product’s stock is 0, the current code still shows blank, which is misleading.
+
+    // Handling User Change
+    const handleChange=(e)=>{
+        const{name,value}=e.target;
+
+        if(name==="H"||name=="F"){
+            setFormData({
+                ...formData,
+                price:{...formData.price,[name]:value}
+            })
+        }else{
+            setFormData({...formData,[name]:value})
+        }
+    }
+
+    // Handling User Submit button
+    
+    const handleSubmit=(e)=>{
+        e.preventDefault();
+        onSave({
+            ...formData,
+            id:product?.id,
+            stock:String(formData.stock)||"0",
+            price:{
+                H:Number(formData.price.H)||0,
+                F:Number(formData.price.F)||0,
+            }
+        })
+    }
+
+     return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
       <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">
           {product ? "Edit Product" : "Add Product"}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {/* Title */}
+      <form onSubmit={handleSubmit} className="space-y-3">
+        
           <input
             type="text"
             name="title"
@@ -146,4 +152,5 @@ export default function ProductForm({ product, onSave, onClose }) {
       </div>
     </div>
   );
+   
 }

@@ -1,23 +1,17 @@
 
-
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-
-
-// import Navbar from "./Navbar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Routes, Route } from "react-router-dom";
 import DashboardHome from "./Pages/DashboardHome";
 import AdminProducts from "./Pages/Products";
+import UsersPage from "./UserPage/UsersPage";   
+import UserCreate from "./UserPage/UserCreate";
+import UserView from "./UserPage/UserView";    
+import UserEdit from "./UserPage/UserEdit";    
+import OrdersPage from "./Pages/Orders/OrdersPage"; 
+import Sidebar from "./Sidebar";
 
-// Import actual admin pages
-import UsersPage from "./UserPage/UsersPage";   // ✅ full users list page
-import UserCreate from "./UserPage/UserCreate"; // ✅ create user
-import UserView from "./UserPage/UserView";     // ✅ view user details
-import UserEdit from "./UserPage/UserEdit";     // ✅ edit user
-import OrdersPage from "./Pages/Orders/OrdersPage"; // ✅ Add this import
-import Sidebar from "./sidebar";
 
 const COLLAPSED_W = 80;
 const EXPANDED_W = 260;
@@ -62,15 +56,16 @@ export default function AdminDashboard() {
       >
         <div className="flex-1 p-8 mt-20">
           <Routes>
-            <Route path="/" element={<DashboardHome />} />
-            <Route path="orders" element={<OrdersPage />} /> {/* ✅ Updated to use OrdersPage */}
+            <Route index element={<DashboardHome />} />
+            <Route path="orders" element={<OrdersPage />} />
             <Route path="products" element={<AdminProducts />} />
-            
-            {/* ✅ Users Routes */}
             <Route path="users" element={<UsersPage />} />
             <Route path="users/create" element={<UserCreate />} />
             <Route path="users/:id" element={<UserView />} />
             <Route path="users/edit/:id" element={<UserEdit />} />
+            
+            {/* Catch all route for admin - redirect to admin home */}
+            <Route path="*" element={<DashboardHome />} />
           </Routes>
         </div>
       </main>

@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ProductForm from "./ProductForm";
@@ -11,6 +9,7 @@ export default function Products() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [productToDelete, setProductToDelete] = useState(null);
 
   const API_URL = "http://localhost:5000/products";
 
@@ -28,9 +27,12 @@ export default function Products() {
     }
   };
 
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                //   SAVE 
+                                                
   const handleSave = async (product) => {
     try {
-      if (product.id) {
+      if (product.id!==null) {
         // update product
         await axios.put(`${API_URL}/${product.id}`, product);
       } else {
@@ -47,18 +49,41 @@ export default function Products() {
       console.error("Failed to save product:", err);
     }
   };
+                                                //   SAVE 
+                                                         
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  // ✅ Get unique categories from products
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                //  DELETE 
+                                                
+  const handleDelete = async (productId) => {
+    try {
+      await axios.delete(`${API_URL}/${productId}`);
+      fetchProducts(); // refresh list
+      setProductToDelete(null); // close confirmation dialog
+    } catch (err) {
+      console.error("Failed to delete product:", err);
+    }
+  };
+
+  const confirmDelete = (product) => {
+    setProductToDelete(product);
+  };
+                                                //  DELETE 
+                                                         
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //  Get unique categories from products
   const categories = [...new Set(products.map((p) => p.category).filter(Boolean))];
 
-  // ✅ Apply search + category filter
+  //  Apply search + category filter
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter ? p.category === categoryFilter : true;
     return matchesSearch && matchesCategory;
   });
 
-  // ✅ Stock status indicator
+  //  Stock status indicator
   const getStockStatus = (stock) => {
     const stockNum = parseInt(stock) || 0;
     if (stockNum === 0) return { text: "Out of Stock", color: "text-red-600 bg-red-100" };
@@ -120,7 +145,7 @@ export default function Products() {
               <th className="p-3">Stock</th>
               <th className="p-3">Status</th>
               <th className="p-3">Category</th>
-              <th className="p-3">Action</th>
+              <th className="p-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -143,7 +168,7 @@ export default function Products() {
 
                   {/* Price */}
                   <td className="p-3 font-semibold">
-                    {typeof product.price === "object"
+                    {product.price &&typeof product.price === "object"
                       ? Object.entries(product.price)
                           .map(([key, value]) => `${key}: $${value}`)
                           .join(" / ")
@@ -167,17 +192,28 @@ export default function Products() {
                   {/* Category/Type */}
                   <td className="p-3 text-gray-600">{product.category || "—"}</td>
 
-                  {/* Action */}
+                  {/* Actions */}
                   <td className="p-3">
-                    <button
-                      onClick={() => {
-                        setEditingProduct(product);
-                        setShowForm(true);
-                      }}
-                      className="px-2 py-1 rounded hover:bg-gray-200"
-                    >
-                      ⋮
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {/* Edit Button */}
+                      <button
+                        onClick={() => {
+                          setEditingProduct(product);
+                          setShowForm(true);
+                        }}
+                        className="px-3 py-1 rounded bg-blue-100 text-blue-600 hover:bg-blue-200 text-sm"
+                      >
+                        Edit
+                      </button>
+                      
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => confirmDelete(product)}
+                        className="px-3 py-1 rounded bg-red-100 text-red-600 hover:bg-red-200 text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -193,6 +229,33 @@ export default function Products() {
           onSave={handleSave}
           onClose={() => setShowForm(false)}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {productToDelete && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>
+            <p className="mb-6">
+              Are you sure you want to delete <strong>"{productToDelete.title}"</strong>? 
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setProductToDelete(null)}
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(productToDelete.id)}
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

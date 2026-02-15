@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -22,16 +21,16 @@ export default function DashboardHome() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [usersRes, ordersRes, productsRes] = await Promise.all([
-          axios.get("http://localhost:5000/users"),
+        const [usersRes, ordersRes, productsRes] = await Promise.all([  //Promise.all() is a JavaScript method that runs multiple promises in parallel and waits until all of them are finished.
+          axios.get("http://localhost:5000/users"),                     //Promise.all([...]) takes an array of promises and returns a single promise that resolves with an array of results.
           axios.get("http://localhost:5000/orders"),
           axios.get("http://localhost:5000/products")
         ]);
         
-        setUsers(usersRes.data || []);
-        setOrders(ordersRes.data || []);
-        setProducts(productsRes.data || []);
-      } catch (err) {
+        setUsers(usersRes.data || []);             //|| [] is a safety fallback. It means:
+        setOrders(ordersRes.data || []);          //If usersRes.data (or ordersRes.data / productsRes.data) exists → use it.
+        setProducts(productsRes.data || []);     //If it’s null or undefined → use an empty array [] instead.
+      } catch (err) {                           //This ensures the state is always an array so the app won’t crash when doing .map() or .length.
         console.error("Error fetching dashboard data:", err);
       } finally {
         setLoading(false);
@@ -41,9 +40,13 @@ export default function DashboardHome() {
     fetchData();
     
     // Real-time updates every 30 seconds
-    const interval = setInterval(fetchData, 30000);
+    const interval = setInterval(fetchData, 30000); 
     return () => clearInterval(interval);
   }, []);
+  /* When your dashboard page closes or reloads, React removes (unmounts) the component.
+return () => clearInterval(interval) means:
+“Before removing this component, stop the running timer.”
+If we don’t stop it, the timer keeps running in the background, even though the page is gone — that causes memory waste (leak) or multiple fetches happening at once later.*/
 
   // Calculate real statistics
   const calculateStats = () => {
@@ -68,7 +71,7 @@ export default function DashboardHome() {
   const generateRevenueData = () => {
     const last7Days = [];
     
-    // Create last 7 days array
+    // Create last 7 days array     
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -77,7 +80,7 @@ export default function DashboardHome() {
         fullDate: date.toISOString().split('T')[0],
         revenue: 0
       });
-    }
+    }                          
 
     // Calculate revenue for each day
     orders.forEach(order => {
@@ -97,8 +100,10 @@ export default function DashboardHome() {
   const calculateMetrics = () => {
     const pendingOrders = orders.filter(order => order.status === 'Pending').length;
     const completedOrders = orders.filter(order => order.status === 'Completed').length;
+    
     const activeUsers = users.filter(user => {
       const userOrders = orders.filter(order => order.userId === user.id);
+      
       const recentOrders = userOrders.filter(order => {
         const orderDate = new Date(order.createdAt || order.date);
         const thirtyDaysAgo = new Date();
@@ -118,7 +123,7 @@ export default function DashboardHome() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-lg">Loading dashboard data...</div>
+      <div className="text-lg">Loading dashboard data...</div>
       </div>
     );
   }

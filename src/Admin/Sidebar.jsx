@@ -1,10 +1,11 @@
 
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, Users, LogIn, LogOut } from "lucide-react";
+import { Link, useLocation } from "react-router-dom"; //useLocation for smoothly navigate
+import { LayoutDashboard, ShoppingCart, Package, Users, LogIn, LogOut } from "lucide-react";  
 import { useAuth } from "../Components/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; //useNavigate → use when you call navigation manually inside a function.
+                                                // Navigate → use when you automatically redirect in JSX.
 
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/admindash" },
@@ -19,8 +20,8 @@ const SidebarItem = ({ icon: Icon, text, isActive, collapsed }) => (
     ${isActive ? "bg-blue-700 shadow-md" : "hover:bg-blue-600/70"}`}
   >
     <Icon size={20} className="text-white" />
-    {!collapsed && <span className="font-medium text-white">{text}</span>}
-  </div>
+    {!collapsed && <span className="font-medium text-white">{text}</span>}  
+  </div> // Only show the sidebar text when the sidebar is not collapsed; otherwise, hide it and show just the icons.
 );
 
 export default function Sidebar({ collapsed }) {
@@ -30,7 +31,7 @@ export default function Sidebar({ collapsed }) {
 
   const handleAuthAction = () => {
     if (user) {
-      logout();            // clear context + localStorage
+      logout();           
       navigate("/login");  // redirect after logout
     } else {
       navigate("/login");  // go to login page if not logged in

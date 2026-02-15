@@ -1,4 +1,3 @@
-// src/Admin/Pages/Orders/OrdersPage.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, Edit, Trash, Search, Filter } from "lucide-react";

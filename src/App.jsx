@@ -1,18 +1,14 @@
-
-import React from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Menu from "./pages/Menu";
-import AddressForm from "./pages/AddressForm";
 import Home from "./pages/Home";
 import Contact from "./pages/Contact";
 import Cart from "./pages/Cart";
 import MyOrder from "./pages/MyOrder";
+import Wishlist from "./pages/Wishlist";
 import { CartProvider } from "./pages/CartContext";
 import { WishlistProvider } from "./pages/WishlistContext";
 import Header from "./Components/Header";
 import Footer from "./Components/Footer";
-import Login from "./Components/Login";
-import Wishlist from "./pages/Wishlist";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AdminDashboard from "./Admin/AdminDashboard";
@@ -20,108 +16,56 @@ import UsersPage from "./Admin/UserPage/UsersPage";
 import UserCreate from "./Admin/UserPage/UserCreate";
 import UserView from "./Admin/UserPage/UserView";
 import UserEdit from "./Admin/UserPage/UserEdit";
-import ProtectedRoute from "./Route/ProtectedRoute";
-import { AuthProvider } from "./Components/AuthContext";
 
+// Import from new locations
+import { AuthProvider } from "./Components/AuthContext";
+import PublicRoute from "./Route/PublicRoute";
+import UserProtectedRoute from "./Route/UserProtectedRoute";
+import AdminProtectedRoute from "./Admin/Router/AdminProtectedRoute ";
+import Login from "./Components/Login";
+import ForgotPassword from "./Components/ForgotPassword";
 const AppContent = () => {
   const location = useLocation();
-  const isAdminPage = location.pathname.startsWith("/admindash");
+  const isAdminPage = location.pathname.startsWith("/admin") || 
+                     location.pathname.startsWith("/admindash");
 
   return (
     <>
       {!isAdminPage && <Header />}
 
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/menu" element={<Menu />} />
-        <Route path="/contact" element={<Contact />} />
-        
-        {/* Auth Routes - redirect to home if already logged in */}
-        <Route 
-          path="/login" 
-          element={
-            <ProtectedRoute>
-              <Login />
-            </ProtectedRoute>
-          } 
-        />
+        {/* PUBLIC ROUTES */}
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
 
-        {/* Protected User Routes */}
-        <Route 
-          path="/cart" 
-          element={
-            <ProtectedRoute requireAuth>
-              <Cart />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/addressform" 
-          element={
-            <ProtectedRoute requireAuth>
-              <AddressForm />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/wishlist" 
-          element={
-            <ProtectedRoute requireAuth>
-              <Wishlist />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/myorders" 
-          element={
-            <ProtectedRoute requireAuth>
-              <MyOrder />
-            </ProtectedRoute>
-          } 
-        />
+        {/* USER PROTECTED ROUTES */}
+        <Route element={<UserProtectedRoute />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/myorders" element={<MyOrder />} />
+        </Route>
 
-        {/* Admin Routes */}
-        <Route 
-          path="/admindash/*" 
-          element={
-            <ProtectedRoute requireAdmin>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admin/users" 
-          element={
-            <ProtectedRoute requireAdmin>
-              <UsersPage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admin/users/create" 
-          element={
-            <ProtectedRoute requireAdmin>
-              <UserCreate />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admin/users/:id" 
-          element={
-            <ProtectedRoute requireAdmin>
-              <UserView />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admin/users/edit/:id" 
-          element={
-            <ProtectedRoute requireAdmin>
-              <UserEdit />
-            </ProtectedRoute>
-          } 
-        />
+        {/* ADMIN PROTECTED ROUTES */}
+        <Route element={<AdminProtectedRoute />}>
+          <Route path="/admindash/*" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<UsersPage />} />
+          <Route path="/admin/users/create" element={<UserCreate />} />
+          <Route path="/admin/users/:id" element={<UserView />} />
+          <Route path="/admin/users/edit/:id" element={<UserEdit />} />
+        </Route>
+
+        {/* 404 PAGE */}
+        <Route path="*" element={
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+              <p className="text-xl text-gray-600">Page not found</p>
+            </div>
+          </div>
+        } />
       </Routes>
 
       {!isAdminPage && <Footer />}
@@ -137,7 +81,18 @@ const App = () => {
           <main className="overflow-x-hidden text-textColor">
             <AppContent />
           </main>
-          <ToastContainer position="top-right" autoClose={3000} />
+          <ToastContainer 
+            position="top-right" 
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
         </WishlistProvider>
       </CartProvider>
     </AuthProvider>

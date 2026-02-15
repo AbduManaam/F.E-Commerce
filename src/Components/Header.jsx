@@ -53,7 +53,6 @@ const Header = () => {
           )}
         </div>
 
-        {/* Right side icons */}
         <div className="flex items-center gap-x-4 sm:gap-x-6">
           {/* Mobile Menu Icon - Visible only on small/medium screens */}
           <div className="lg:hidden">

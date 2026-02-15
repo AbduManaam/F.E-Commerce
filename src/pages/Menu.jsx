@@ -9,7 +9,7 @@ const Menu = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // ✅ pagination states
+  //  pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8; // how many products per page
 
@@ -41,7 +41,7 @@ const Menu = () => {
     }
   };
 
-  // ✅ pagination logic
+  //  pagination logic
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filtered.slice(startIndex, startIndex + itemsPerPage);
@@ -84,7 +84,7 @@ const Menu = () => {
         ))}
       </div>
 
-      {/* ✅ Pagination Controls */}
+      {/*  Pagination Controls */}
       <div className="flex items-center justify-center mt-16">
         <div className="flex items-center justify-between w-full max-w-80 text-gray-500 font-medium">
           {/* Prev button */}

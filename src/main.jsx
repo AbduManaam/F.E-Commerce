@@ -8,6 +8,7 @@ import { AuthProvider } from "./Components/AuthContext.jsx";
 import { CartProvider } from "./pages/CartContext.jsx";
 import { WishlistProvider } from "./pages/WishlistContext.jsx";
 
+
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -21,3 +22,4 @@ createRoot(document.getElementById("root")).render(
     </BrowserRouter>
   </React.StrictMode>
 );
+

@@ -1,17 +1,20 @@
 
-
-
 import React, { useState } from "react";
 import { useCart } from "./CartContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useAuth } from "../Components/AuthContext";
+import { useAuth} from "../Components/AuthContext";
+
 
 const API_URL = "http://localhost:5000";
 const ORDERS_API = `${API_URL}/orders`;
 const PRODUCTS_API = `${API_URL}/products`;
 
 const Cart = () => {
+
+// const view=useSelector(state=>state.cart_Items.cartItems)
+
+
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
   const { user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState("COD");
@@ -28,7 +31,7 @@ const Cart = () => {
   const tax = subtotal * taxRate;
   const total = subtotal + shippingFee + tax;
 
-  // ✅ Update product stock when order is placed
+  //  Update product stock when order is placed
   const updateProductStock = async (cartItems) => {
     const updatePromises = cartItems.map(async (item) => {
       try {
@@ -58,7 +61,7 @@ const Cart = () => {
     return Promise.all(updatePromises);
   };
 
-  // ✅ Place order with stock update
+  // Place order with stock update
   const handleCheckout = async () => {
     if (!user) {
       toast.error("Please login to place an order 🚨");

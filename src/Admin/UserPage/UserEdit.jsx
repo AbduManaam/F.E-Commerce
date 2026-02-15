@@ -6,6 +6,7 @@ const UserEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", status: "Active", orders: 0 });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     axios.get(`http://localhost:5000/users/${id}`).then((res) => setForm(res.data));
@@ -15,28 +16,39 @@ const UserEdit = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.put(`http://localhost:5000/users/${id}`, form);
-    navigate("/admin/users");
+    setLoading(true);
+    try {
+      await axios.put(`http://localhost:5000/users/${id}`, form);
+      navigate("/admin/users");  //Automatically returns admin to users list after saving edits.
+    } catch (err) {
+      console.error("Update failed:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="p-8 text-white">
       <h2 className="text-2xl font-bold mb-4">Edit User</h2>
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md">
         <input name="name" value={form.name} onChange={handleChange} className="p-2 rounded text-black" />
         <input name="email" value={form.email} onChange={handleChange} className="p-2 rounded text-black" />
         <select name="status" value={form.status} onChange={handleChange} className="p-2 rounded text-black">
           <option>Active</option>
           <option>Inactive</option>
+          <option>Blocked</option>
         </select>
-        <input
+        {/* <input
           name="orders"
           type="number"
           value={form.orders}
           onChange={handleChange}
           className="p-2 rounded text-black"
-        />
-        <button type="submit" className="bg-blue-500 px-4 py-2 rounded">Save</button>
+        /> */}
+        <button type="submit" disabled={loading} className="bg-blue-500 px-4 py-2 rounded disabled:opacity-50">
+          {loading ? "Saving..." : "Save"}
+        </button>
       </form>
     </div>
   );

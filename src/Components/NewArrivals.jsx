@@ -1,4 +1,3 @@
-// NewArrivals.jsx
 import React, { useEffect, useState } from 'react';
 import Title from './Title';
 import { dummyProducts } from '../assets/data';
@@ -18,7 +17,7 @@ const NewArrivals = () => {
     .slice(0, 10)
     .map((p) => ({
       ...p,
-      id: p._id || p.id, // normalize id
+      id: p._id || p.id, 
       price: typeof p.price === "number" ? { default: p.price } : p.price,
       sizes: p.sizes || (typeof p.price === "number" ? ["default"] : Object.keys(p.price)),
     }));
@@ -44,7 +43,6 @@ const NewArrivals = () => {
         className="min-h-[599px]"
       >
         {newArrivals.map((product) => (
-          // important: flex center the slide and constrain width
           <SwiperSlide key={product._id} className="flex justify-center">
            <div className="w-full max-w-[380px] h-[550px] mx-auto">
               <Items product={product} />

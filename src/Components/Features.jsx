@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { FaTruck, FaLock, FaHeadset } from "react-icons/fa";
 import jsonData from "../Json-Server/data.json";
 
-// Map icons from JSON to React Icons
 const iconsMap = {
   FaTruck: <FaTruck size={22} />,
   FaLock: <FaLock size={22} />,
@@ -14,7 +13,7 @@ const Features = () => {
   const [features, setFeatures] = useState([]);
 
   useEffect(() => {
-    setFeatures(jsonData.features); // Load features directly from JSON
+    setFeatures(jsonData.features); 
   }, []);
 
   return (
@@ -47,9 +46,7 @@ const Features = () => {
           </div>
         </div>
 
-        {/* RIGHT: Images Grid */}
         <div className="grid grid-cols-2 gap-4">
-          {/* Big left image */}
           <div className="bg-gray-200 rounded-xl overflow-hidden col-span-1 row-span-2">
             <img
               src="/images/other/features1.png"
@@ -58,7 +55,6 @@ const Features = () => {
             />
           </div>
 
-          {/* Top-right small image */}
           <div className="bg-gray-200 rounded-xl overflow-hidden">
             <img
               src="/images/other/features2.png"
@@ -67,7 +63,6 @@ const Features = () => {
             />
           </div>
 
-          {/* Bottom-right small image */}
           <div className="bg-gray-200 rounded-xl overflow-hidden">
             <img
               src="/images/other/features3.png"
@@ -82,11 +77,3 @@ const Features = () => {
 };
 
 export default Features;
-
-
-
-
-
-
-
-

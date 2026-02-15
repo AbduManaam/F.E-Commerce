@@ -1,4 +1,3 @@
-import React from "react";
 
 const SearchBar = ({ value, onChange }) => {
   return (
@@ -13,3 +12,5 @@ const SearchBar = ({ value, onChange }) => {
 };
 
 export default SearchBar;
+
+

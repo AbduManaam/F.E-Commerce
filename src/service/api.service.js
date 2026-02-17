@@ -373,7 +373,7 @@ class ApiService {
 
   async addToCart(productId, quantity = 1) {
     try {
-      const res = await this.client.post("/api/cart", { product_id: productId, quantity });
+      const res = await this.client.post("/api/cart", { product_id: parseInt( productId), quantity });
       return { success: true, data: res.data };
     } catch (err) {
       return { success: false, ...this.normalizeError(err) };
@@ -410,7 +410,7 @@ class ApiService {
 
   async addToWishlist(productId) {
     try {
-      const res = await this.client.post("/api/wishlist", { product_id: productId });
+      const res = await this.client.post("/api/wishlist", { product_id: parseInt(productId) });
       return { success: true, data: res.data };
     } catch (err) {
       return { success: false, ...this.normalizeError(err) };

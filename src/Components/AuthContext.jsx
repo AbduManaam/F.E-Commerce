@@ -39,11 +39,13 @@ export const AuthProvider = ({ children }) => {
         setUser(profile);
         setIsAdmin(profile.role === "admin");
         localStorage.setItem("user",JSON.stringify(profile))
-      } catch {
-        localStorage.clear();
-        setUser(null);
-        setIsAdmin(false);
-        console.log("Profile refresh skipped (endpoint not ready)");
+      } catch (error) {
+        console.error("Profile refresh failed:", error);
+        // Only clear state if the token was actually removed (e.g. by Api.jsx 401 interceptor)
+        if (!localStorage.getItem("access_token")) {
+           setUser(null);
+           setIsAdmin(false);
+        }
       } finally {
         setLoading(false);
       }

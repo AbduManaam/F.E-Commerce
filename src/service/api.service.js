@@ -3,7 +3,7 @@ import axios from 'axios';
 // Environment configuration
 const ENV = {
   development: {
-    API_URL: 'http://127.0.0.1:8080',
+    API_URL: 'http://localhost:8080',
     TIMEOUT: 30000,
   },
   production: {
@@ -74,7 +74,7 @@ class ApiService {
       },
       async (error) => {
         const originalRequest = error.config;
-        
+
         // Log error
         console.error('❌ [API] Response Error:', {
           status: error.response?.status,
@@ -90,7 +90,7 @@ class ApiService {
 
           try {
             const refreshResponse = await this.refreshToken();
-            
+
             if (refreshResponse.success) {
               // Retry original request
               originalRequest.headers.Authorization = `Bearer ${refreshResponse.accessToken}`;
@@ -106,7 +106,7 @@ class ApiService {
         // Handle specific error codes
         if (error.response?.status === 403) {
           const errorCode = error.response.data?.code;
-          
+
           if (errorCode === 'USER_BLOCKED') {
             this.logout();
             window.location.href = '/login?blocked=true';
@@ -152,14 +152,14 @@ class ApiService {
   async login(email, password) {
     try {
       const response = await this.client.post('/auth/login', { email, password });
-      
+
       const { access_token, user, message } = response.data;
-      
+
       if (access_token) {
         localStorage.setItem('access_token', access_token);
         localStorage.setItem('token_timestamp', Date.now().toString());
       }
-      
+
       return {
         success: true,
         user,
@@ -209,13 +209,13 @@ class ApiService {
     try {
       const response = await this.client.post('/auth/refresh');
       const { access_token } = response.data;
-      
+
       if (access_token) {
         localStorage.setItem('access_token', access_token);
         localStorage.setItem('token_timestamp', Date.now().toString());
         return { success: true, accessToken: access_token };
       }
-      
+
       return { success: false };
     } catch (error) {
       return { success: false, ...this.normalizeError(error) };
@@ -318,125 +318,125 @@ class ApiService {
   }
 
   // Fetch filtered products from backend
-async getFilteredProducts(params) {
-  try {
-    const response = await this.client.get('/products/filter', { params });
+  async getFilteredProducts(params) {
+    try {
+      const response = await this.client.get('/products/filter', { params });
 
-    // If backend returns array directly
-    if (Array.isArray(response.data)) {
+      // If backend returns array directly
+      if (Array.isArray(response.data)) {
+        return {
+          success: true,
+          data: {
+            products: response.data,
+            total: response.data.length,
+          },
+        };
+      }
+
+      // If backend returns { products: [], total: number }
+      if (response.data.products) {
+        return {
+          success: true,
+          data: response.data,
+        };
+      }
+
+      // Fallback
       return {
         success: true,
         data: {
-          products: response.data,
-          total: response.data.length,
+          products: [],
+          total: 0,
         },
       };
-    }
 
-    // If backend returns { products: [], total: number }
-    if (response.data.products) {
+    } catch (error) {
       return {
-        success: true,
-        data: response.data,
+        success: false,
+        ...this.normalizeError(error),
       };
     }
-
-    // Fallback
-    return {
-      success: true,
-      data: {
-        products: [],
-        total: 0,
-      },
-    };
-
-  } catch (error) {
-    return {
-      success: false,
-      ...this.normalizeError(error),
-    };
   }
-}
 
 
-// In ApiService class
+  // In ApiService class
 
-// --- CART ---
-async getCart() {
-  try {
-    const res = await this.client.get("/api/cart");
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
+  // --- CART ---
+  async getCart() {
+    try {
+      const res = await this.client.get("/api/cart");
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
   }
-}
 
-async addToCart(productId, quantity = 1) {
-  try {
-    const res = await this.client.post("/api/cart", { product_id: productId, quantity });
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
+  async addToCart(productId, quantity = 1) {
+    try {
+      const res = await this.client.post("/api/cart", { product_id: productId, quantity });
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
   }
-}
 
-async updateCartItem(itemId, quantity) {
-  try {
-    const res = await this.client.put(`/api/cart/item/${itemId}`, { quantity });
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
+  async updateCartItem(itemId, quantity) {
+    try {
+      const res = await this.client.put(`/api/cart/item/${itemId}`, { quantity });
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
   }
-}
 
-async removeCartItem(itemId) {
-  try {
-    const res = await this.client.delete(`/api/cart/item/${itemId}`);
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
+  async removeCartItem(itemId) {
+    try {
+      const res = await this.client.delete(`/api/cart/item/${itemId}`);
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
   }
-}
 
-// --- WISHLIST ---
-async getWishlist() {
-  try {
-    const res = await this.client.get("/api/wishlist");
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
+  // --- WISHLIST ---
+  async getWishlist() {
+    try {
+      const res = await this.client.get("/api/wishlist");
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
   }
-}
 
-async addToWishlist(productId) {
-  try {
-    const res = await this.client.post("/api/wishlist", { product_id: productId });
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
+  async addToWishlist(productId) {
+    try {
+      const res = await this.client.post("/api/wishlist", { product_id: productId });
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
   }
-}
 
-async removeFromWishlist(productId) {
-  try {
-    const res = await this.client.delete(`/api/wishlist/${productId}`);
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
+  async removeFromWishlist(productId) {
+    try {
+      const res = await this.client.delete(`/api/wishlist/${productId}`);
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
   }
-}
 
-// Move wishlist item → cart
-async moveWishlistToCart(productId, quantity = 1) {
-  try {
-    const addCart = await this.addToCart(productId, quantity);
-    if (!addCart.success) throw new Error("Failed to add to cart");
-    const removeWishlist = await this.removeFromWishlist(productId);
-    return { success: true };
-  } catch (err) {
-    return { success: false, message: err.message || "Operation failed" };
+  // Move wishlist item → cart
+  async moveWishlistToCart(productId, quantity = 1) {
+    try {
+      const addCart = await this.addToCart(productId, quantity);
+      if (!addCart.success) throw new Error("Failed to add to cart");
+      const removeWishlist = await this.removeFromWishlist(productId);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message || "Operation failed" };
+    }
   }
-}
 
 
 

@@ -17,7 +17,7 @@ const UserCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/users", {
+      await axios.post("http://127.0.0.1:8080/users", {
         ...form,
         id: "U" + Math.floor(Math.random() * 10000), // simple unique ID
       });

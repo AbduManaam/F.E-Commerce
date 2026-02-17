@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useAuth} from "../Components/AuthContext";
 
 
-const API_URL = "http://localhost:5000";
+const API_URL = "http://127.0.0.1:8080";
 const ORDERS_API = `${API_URL}/orders`;
 const PRODUCTS_API = `${API_URL}/products`;
 

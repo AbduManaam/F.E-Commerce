@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../Components/AuthContext";
 
-const ORDERS_API = "http://localhost:5000/orders";
-const PRODUCTS_API = "http://localhost:5000/products"; 
+const ORDERS_API = "http://127.0.0.1:8080/orders";
+const PRODUCTS_API = "http://127.0.0.1:8080/products"; 
 
 const MyOrders = () => {
   const { user } = useAuth();

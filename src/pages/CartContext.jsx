@@ -1,92 +1,164 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
+import apiService from "../service/api.service";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Components/AuthContext";
 import { toast } from "react-toastify";
 
 const CartContext = createContext();
-const API_URL = "http://localhost:5000/users";
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const [cartCount, setCartCount] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
-      axios
-        .get(`${API_URL}/${user.id}`)
-        .then((res) => setCart(res.data.cart || []))
-        .catch((err) => console.error("Failed to fetch user cart:", err));
+      loadCart();
     } else {
       setCart([]);
+      setCartCount(0);
     }
   }, [user]);
 
-  const syncCart = async (newCart) => {
-    if (!user) return;
-    try {
-      await axios.patch(`${API_URL}/${user.id}`, { cart: newCart });
-      setCart(newCart);
-    } catch (err) {
-      console.error("Cart sync failed:", err);
-    }
-  };
 
-  const addToCart = (product, size) => {
-    if (!user) return navigate("/login");
+  
+ // ✅ Load cart from backend
+const loadCart = async () => {
+  if (!user) return;
+  
+  try {
+    const response = await apiService.getCart();
+    if (response.success) {
+      // ✅ FIX: Ensure cart is always an array
+      const cartData = Array.isArray(response.data) ? response.data : [];
+      setCart(cartData);
+      const count = cartData.reduce((acc, item) => acc + (item.qty || 1), 0);
+      setCartCount(count);
+    }
+  } catch (err) {
+    console.error("Failed to fetch cart:", err);
+    setCart([]); // ✅ Set empty array on error
+    setCartCount(0);
+  }
+};
+
+
+  // ✅ Add to cart using POST /api/cart
+  const addToCart = async (product, size) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
 
     const existing = cart.find((item) => item.id === product.id && item.size === size);
-    
+
     if (existing) {
       toast.info("🛒 This product is already in your cart!");
       return;
     }
 
-    const newCart = [...cart, { ...product, size, qty: 1 }];
-    syncCart(newCart);
-    toast.success("✅ Product added to cart!");
+    try {
+      const response = await apiService.addToCart(product.id, 1);
+      
+      if (response.success) {
+        const newItem = { ...product, size, qty: 1 };
+        const newCart = [...cart, newItem];
+        setCart(newCart);
+        setCartCount(cartCount + 1);
+        toast.success("✅ Product added to cart!");
+      }
+    } catch (err) {
+      console.error("Add to cart failed:", err);
+      toast.error("Failed to add to cart");
+    }
   };
 
-  const removeFromCart = (id, size) => {
-    if (!user) return navigate("/login");
-    syncCart(cart.filter((item) => !(item.id === id && item.size === size)));
-    toast.info("🗑️ Product removed from cart");
+  // ✅ Remove from cart using DELETE /api/cart/item/:itemId
+  const removeFromCart = async (id, size) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      // Find the cart item ID (you'll need this from your backend response)
+      const item = cart.find((item) => item.id === id && item.size === size);
+      if (!item) return;
+
+      const response = await apiService.removeCartItem(item.cartItemId || id);
+      
+      if (response.success) {
+        const newCart = cart.filter((item) => !(item.id === id && item.size === size));
+        setCart(newCart);
+        const count = newCart.reduce((acc, item) => acc + (item.qty || 1), 0);
+        setCartCount(count);
+        toast.info("🗑️ Product removed from cart");
+      }
+    } catch (err) {
+      console.error("Remove from cart failed:", err);
+      toast.error("Failed to remove from cart");
+    }
   };
 
-  const updateQty = (id, size, qty) => {
-    if (!user) return navigate("/login");
-    syncCart(cart.map((item) =>
-      item.id === id && item.size === size ? { ...item, qty } : item
-    ));
+  // ✅ Update quantity using PUT /api/cart/item/:itemId
+  const updateQty = async (id, size, qty) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const item = cart.find((item) => item.id === id && item.size === size);
+      if (!item) return;
+
+      const response = await apiService.updateCartItem(item.cartItemId || id, qty);
+      
+      if (response.success) {
+        const newCart = cart.map((item) =>
+          item.id === id && item.size === size ? { ...item, qty } : item
+        );
+        setCart(newCart);
+        const count = newCart.reduce((acc, item) => acc + (item.qty || 1), 0);
+        setCartCount(count);
+      }
+    } catch (err) {
+      console.error("Update quantity failed:", err);
+      toast.error("Failed to update quantity");
+    }
   };
 
-  const clearCart = () => {
-    if (!user) return navigate("/login");
-    syncCart([]);
-    toast.info("🛒 Cart cleared");
-  };
+  // ✅ Clear cart
+  const clearCart = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
 
-  const value = {
-    cart,
-    addToCart,
-    removeFromCart,
-    updateQty,
-    clearCart
+    try {
+      const promises = cart.map(item => apiService.removeCartItem(item.cartItemId || item.id));
+      await Promise.all(promises);
+      
+      setCart([]);
+      setCartCount(0);
+      toast.info("🛒 Cart cleared");
+    } catch (err) {
+      console.error("Clear cart failed:", err);
+      toast.error("Failed to clear cart");
+    }
   };
 
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider
+      value={{ cart, cartCount, addToCart, removeFromCart, updateQty, clearCart, loadCart }}
+    >
       {children}
     </CartContext.Provider>
   );
 };
 
-// ✅ IMPORTANT: This export must be here
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
+  if (!context) throw new Error("useCart must be used within a CartProvider");
   return context;
 };

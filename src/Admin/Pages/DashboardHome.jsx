@@ -22,9 +22,9 @@ export default function DashboardHome() {
     const fetchData = async () => {
       try {
         const [usersRes, ordersRes, productsRes] = await Promise.all([  //Promise.all() is a JavaScript method that runs multiple promises in parallel and waits until all of them are finished.
-          axios.get("http://localhost:5000/users"),                     //Promise.all([...]) takes an array of promises and returns a single promise that resolves with an array of results.
-          axios.get("http://localhost:5000/orders"),
-          axios.get("http://localhost:5000/products")
+          axios.get("http://127.0.0.1:8080/users"),                     //Promise.all([...]) takes an array of promises and returns a single promise that resolves with an array of results.
+          axios.get("http://127.0.0.1:8080/orders"),
+          axios.get("http://127.0.0.1:8080/products")
         ]);
         
         setUsers(usersRes.data || []);             //|| [] is a safety fallback. It means:

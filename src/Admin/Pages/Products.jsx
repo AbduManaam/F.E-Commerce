@@ -11,7 +11,7 @@ export default function Products() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [productToDelete, setProductToDelete] = useState(null);
 
-  const API_URL = "http://localhost:5000/products";
+  const API_URL = "http://127.0.0.1:8080/products";
 
   // Load products from JSON server
   useEffect(() => {

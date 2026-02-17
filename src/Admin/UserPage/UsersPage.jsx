@@ -22,8 +22,8 @@ const UsersPage = () => {
     const fetchData = async () => {
       try {
         const [usersRes, ordersRes] = await Promise.all([
-          axios.get("http://localhost:5000/users"),
-          axios.get("http://localhost:5000/orders")
+          axios.get("http://127.0.0.1:8080/users"),
+          axios.get("http://127.0.0.1:8080/orders")
         ]);
         setUsers(usersRes.data);
         setOrders(ordersRes.data);
@@ -78,7 +78,7 @@ const UsersPage = () => {
   // const deleteUser = async (id) => {
   //   if (window.confirm("Are you sure you want to delete this user?")) {
   //     try {
-  //       await axios.delete(`http://localhost:5000/users/${id}`);
+  //       await axios.delete(`http://127.0.0.1:8080/users/${id}`);
   //       setUsers(users.filter(u => u.id !== id));
   //     } catch (err) {
   //       console.error("Delete failed:", err);
@@ -90,7 +90,7 @@ const UsersPage = () => {
     try {
       const userToUpdate = users.find(u => u.id === id);
       const updatedUser = { ...userToUpdate, status: "Blocked", blockedAt: new Date().toISOString() };
-      await axios.put(`http://localhost:5000/users/${id}`, updatedUser);
+      await axios.put(`http://127.0.0.1:8080/users/${id}`, updatedUser);
       setUsers(users.map(u => u.id === id ? updatedUser : u));
       setUserToBlock(null);
     } catch (err) {
@@ -102,7 +102,7 @@ const UsersPage = () => {
     try {
       const userToUpdate = users.find(u => u.id === id);
       const updatedUser = { ...userToUpdate, status: "Active", blockedAt: null };
-      await axios.put(`http://localhost:5000/users/${id}`, updatedUser);
+      await axios.put(`http://127.0.0.1:8080/users/${id}`, updatedUser);
       setUsers(users.map(u => u.id === id ? updatedUser : u));
       setUserToUnblock(null);
     } catch (err) {
@@ -112,7 +112,7 @@ const UsersPage = () => {
 
   const handleSaveUser = async (updatedUser) => {
     try {
-      await axios.put(`http://localhost:5000/users/${updatedUser.id}`, updatedUser);
+      await axios.put(`http://127.0.0.1:8080/users/${updatedUser.id}`, updatedUser);
       setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
       setEditUser(null);
     } catch (err) {

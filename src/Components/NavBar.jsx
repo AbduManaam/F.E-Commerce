@@ -1,18 +1,20 @@
-
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { useCart } from "../pages/CartContext";
+import { useWishlist } from "../pages/WishlistContext";
 
-
-const NavBar = ({ setmenuOpened}) => {
+const NavBar = ({ setmenuOpened }) => {
   const navLinks = [
     { path: "/", title: "Home" },
     { path: "/menu", title: "Menu" },
     { path: "/contact", title: "Contact" },
   ];
 
-  return (
-    <nav>
+  const { cartCount } = useCart();
+  const { wishlist } = useWishlist();
 
+  return (
+    <nav className="flex items-center gap-6">
       {navLinks.map((links) => (
         <NavLink
           onClick={() => setmenuOpened(false)}
@@ -25,10 +27,9 @@ const NavBar = ({ setmenuOpened}) => {
           {links.title}
         </NavLink>
       ))}
+
     </nav>
   );
 };
 
 export default NavBar;
-
-

@@ -18,9 +18,9 @@ const OrdersPage = () => {
     const fetchData = async () => {
       try {
         const [ordersRes, usersRes, productsRes] = await Promise.all([
-          axios.get("http://localhost:5000/orders"),
-          axios.get("http://localhost:5000/users"),
-          axios.get("http://localhost:5000/products")
+          axios.get("http://127.0.0.1:8080/orders"),
+          axios.get("http://127.0.0.1:8080/users"),
+          axios.get("http://127.0.0.1:8080/products")
         ]);
         setOrders(ordersRes.data);
         setUsers(usersRes.data);
@@ -93,7 +93,7 @@ const OrdersPage = () => {
   const deleteOrder = async (id) => {
     if (window.confirm("Are you sure you want to delete this order?")) {
       try {
-        await axios.delete(`http://localhost:5000/orders/${id}`);
+        await axios.delete(`http://127.0.0.1:8080/orders/${id}`);
         setOrders(orders.filter(order => order.id !== id));
       } catch (err) {
         console.error("Delete failed:", err);
@@ -103,7 +103,7 @@ const OrdersPage = () => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      await axios.patch(`http://localhost:5000/orders/${orderId}`, {
+      await axios.patch(`http://127.0.0.1:8080/orders/${orderId}`, {
         status: newStatus
       });
       setOrders(orders.map(order => 

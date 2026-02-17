@@ -9,7 +9,7 @@ const UserEdit = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/users/${id}`).then((res) => setForm(res.data));
+    axios.get(`http://127.0.0.1:8080/users/${id}`).then((res) => setForm(res.data));
   }, [id]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,7 +18,7 @@ const UserEdit = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put(`http://localhost:5000/users/${id}`, form);
+      await axios.put(`http://127.0.0.1:8080/users/${id}`, form);
       navigate("/admin/users");  //Automatically returns admin to users list after saving edits.
     } catch (err) {
       console.error("Update failed:", err);

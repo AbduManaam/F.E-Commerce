@@ -12,8 +12,8 @@ const UserView = () => {
     const fetchUserData = async () => {
       try {
         const [userRes, ordersRes] = await Promise.all([
-          axios.get(`http://localhost:5000/users/${id}`),
-          axios.get(`http://localhost:5000/orders?userId=${id}`)
+          axios.get(`http://127.0.0.1:8080/users/${id}`),
+          axios.get(`http://127.0.0.1:8080/orders?userId=${id}`)
         ]);
         
         setUser(userRes.data);

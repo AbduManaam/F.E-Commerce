@@ -1,33 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Title from './Title';
-import { dummyProducts } from '../assets/data';
-import Items from './items';
-
+import Items from './Items';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import { Autoplay } from 'swiper/modules';
 
-const NewArrivals = () => {
-  const [newArrivals, setNewArrivals] = useState([]);
+const NewArrivals = ({ products }) => {
 
+  if (!products || products.length === 0) {
+    return <div className="text-center py-20">No products found</div>;
+  }
 
-  useEffect(() => {
-  const transformed = dummyProducts
-    .filter((item) => item.inStock)
-    .slice(0, 10)
-    .map((p) => ({
-      ...p,
-      id: p._id || p.id, 
-      price: typeof p.price === "number" ? { default: p.price } : p.price,
-      sizes: p.sizes || (typeof p.price === "number" ? ["default"] : Object.keys(p.price)),
-    }));
+  // ✅ Transform products to match Items component expectations
+  const transformProduct = (product) => {
+    console.log("new arrivals",product);
     
-  setNewArrivals(transformed);
-}, []);
+    // Extract image URLs
+    let imageUrls = [];
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      imageUrls = product.images[0]
+    }
+    
+    if (imageUrls.length === 0) {
+      imageUrls = ["/images/placeholder.png"];
+    }
 
+    return {
+      id: product.ID || product.id,
+      title: product.Name || product.title,
+      description: product.Description || product.description || "",
+      images:imageUrls,
+      price: product.FinalPrice || product.Price || product.price || 0,
+      stock: product.Stock || product.stock,
+      category_name: product.CategoryName || product.category_name,
+      _original: product
+    };
+  };
+
+  // ✅ Transform all products
+  const transformedProducts = products.map(transformProduct);
 
   return (
-    <section className="max-padd-containerr py-22 xl:py-45 bg-white">
+    // <section className="max-padd-containerr py-22 xl:py-45 bg-white">
+    <section className="max-padd-containerr py-5 xl:py-45 bg-	bg-[#FFFBF0]">
       <Title title1="New" title2="Arrivals" titleStyles="pb-10" />
 
       <Swiper
@@ -42,9 +57,12 @@ const NewArrivals = () => {
         modules={[Autoplay]}
         className="min-h-[599px]"
       >
-        {newArrivals.map((product) => (
-          <SwiperSlide key={product._id} className="flex justify-center">
-           <div className="w-full max-w-[380px] h-[550px] mx-auto">
+        {transformedProducts.map((product) => (
+          <SwiperSlide
+            key={product.id}
+            className="flex justify-center"
+          >
+            <div className="w-full max-w-[380px] h-[550px] mx-auto">
               <Items product={product} />
             </div>
           </SwiperSlide>
@@ -55,4 +73,3 @@ const NewArrivals = () => {
 };
 
 export default NewArrivals;
-

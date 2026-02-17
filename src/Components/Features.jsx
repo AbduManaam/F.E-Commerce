@@ -1,7 +1,179 @@
 
-import React, { useState, useEffect } from "react";
+// import React, { useState, useEffect } from "react";
+// import { FaTruck, FaLock, FaHeadset } from "react-icons/fa";
+// import jsonData from "../Json-Server/data.json";
+
+// const iconsMap = {
+//   FaTruck: <FaTruck size={22} />,
+//   FaLock: <FaLock size={22} />,
+//   FaHeadset: <FaHeadset size={22} />,
+// };
+
+// const Features = () => {
+//   const [features, setFeatures] = useState([]);
+
+//   useEffect(() => {
+//     setFeatures(jsonData.features); 
+//   }, []);
+
+//   return (
+//     <section className="bg-pink-50 py-16">
+//       <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center px-6">
+        
+//         {/* LEFT: Features List */}
+//         <div>
+//           <h2 className="text-3xl font-bold mb-4">
+//             DISCOVER OUR{" "}
+//             <span className="text-orange-500">FOOD APP'S KEY FEATURES!</span>
+//           </h2>
+//           <p className="text-gray-600 mb-8">
+//             Discover fresh foods that delight your taste, nourish your body,
+//             and bring joy to every meal.
+//           </p>
+
+//           <div className="space-y-6">
+//             {features.map((feature) => (
+//               <div key={feature.id} className="flex items-start gap-4">
+//                 <div className="bg-orange-500 text-white p-3 rounded-md">
+//                   {iconsMap[feature.icon]}
+//                 </div>
+//                 <div>
+//                   <h3 className="font-semibold text-lg">{feature.title}</h3>
+//                   <p className="text-gray-500 text-sm">{feature.desc}</p>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+
+//         <div className="grid grid-cols-2 gap-4">
+//           <div className="bg-gray-200 rounded-xl overflow-hidden col-span-1 row-span-2">
+//             <img
+//               src="/images/other/features1.png"
+//               alt="food"
+//               className="w-full h-full object-cover"
+//             />
+//           </div>
+
+//           <div className="bg-gray-200 rounded-xl overflow-hidden">
+//             <img
+//               src="/images/other/features2.png"
+//               alt="food"
+//               className="w-full h-full object-cover"
+//             />
+//           </div>
+
+//           <div className="bg-gray-200 rounded-xl overflow-hidden">
+//             <img
+//               src="/images/other/features3.png"
+//               alt="food"
+//               className="w-full h-full object-cover"
+//             />
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Features;
+
+
+
+
+
+// import React from "react";
+// import { FaTruck, FaLock, FaHeadset } from "react-icons/fa";
+
+// const iconsMap = {
+//   FaTruck: <FaTruck size={22} />,
+//   FaLock: <FaLock size={22} />,
+//   FaHeadset: <FaHeadset size={22} />,
+// };
+
+// const Features = ({ features }) => {
+
+//   if (!features || features.length === 0) return null;
+
+//   return (
+//     <section className="bg-pink-50 py-16">
+//       <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center px-6">
+        
+//         <div>
+//           <h2 className="text-3xl font-bold mb-4">
+//             DISCOVER OUR{" "}
+//             <span className="text-orange-500">FOOD APP'S KEY FEATURES!</span>
+//           </h2>
+
+//           <p className="text-gray-600 mb-8">
+//             Discover fresh foods that delight your taste, nourish your body,
+//             and bring joy to every meal.
+//           </p>
+
+//           <div className="space-y-6">
+//             {features.map((feature) => (
+//               <div key={feature.id} className="flex items-start gap-4">
+//                 <div className="bg-orange-500 text-white p-3 rounded-md">
+//                   {iconsMap[feature.icon]}
+//                 </div>
+//                 <div>
+//                   <h3 className="font-semibold text-lg">{feature.title}</h3>
+//                   <p className="text-gray-500 text-sm">{feature.desc}</p>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+
+//         <div className="grid grid-cols-2 gap-4">
+//           <div className="bg-gray-200 rounded-xl overflow-hidden col-span-1 row-span-2">
+//             <img
+//               src="/images/other/features1.png"
+//               alt="food"
+//               className="w-full h-full object-cover"
+//             />
+//           </div>
+
+//           <div className="bg-gray-200 rounded-xl overflow-hidden">
+//             <img
+//               src="/images/other/features2.png"
+//               alt="food"
+//               className="w-full h-full object-cover"
+//             />
+//           </div>
+
+//           <div className="bg-gray-200 rounded-xl overflow-hidden">
+//             <img
+//               src="/images/other/features3.png"
+//               alt="food"
+//               className="w-full h-full object-cover"
+//             />
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Features;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React from "react";
 import { FaTruck, FaLock, FaHeadset } from "react-icons/fa";
-import jsonData from "../Json-Server/data.json";
 
 const iconsMap = {
   FaTruck: <FaTruck size={22} />,
@@ -9,23 +181,25 @@ const iconsMap = {
   FaHeadset: <FaHeadset size={22} />,
 };
 
-const Features = () => {
-  const [features, setFeatures] = useState([]);
 
-  useEffect(() => {
-    setFeatures(jsonData.features); 
-  }, []);
+const Features = ({ features }) => {
+
+  if (!features || features.length === 0) {
+    return <div className="text-center py-20">No features found</div>;
+  }
 
   return (
     <section className="bg-pink-50 py-16">
       <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center px-6">
         
-        {/* LEFT: Features List */}
         <div>
           <h2 className="text-3xl font-bold mb-4">
             DISCOVER OUR{" "}
-            <span className="text-orange-500">FOOD APP'S KEY FEATURES!</span>
+            <span className="text-orange-500">
+              FOOD APP'S KEY FEATURES!
+            </span>
           </h2>
+
           <p className="text-gray-600 mb-8">
             Discover fresh foods that delight your taste, nourish your body,
             and bring joy to every meal.
@@ -33,7 +207,7 @@ const Features = () => {
 
           <div className="space-y-6">
             {features.map((feature) => (
-              <div key={feature.id} className="flex items-start gap-4">
+              <div key={feature._id || feature.id} className="flex items-start gap-4">
                 <div className="bg-orange-500 text-white p-3 rounded-md">
                   {iconsMap[feature.icon]}
                 </div>

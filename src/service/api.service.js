@@ -128,7 +128,7 @@ class ApiService {
       return {
         status: error.response.status,
         code: error.response.data?.code || 'UNKNOWN_ERROR',
-        message: error.response.data?.message || error.response.data?.error || 'An error occurred',
+        message:error.response.data?.error?.message || error.response.data?.message || error.response.data?.error || 'An error occurred',
         details: error.response.data,
       };
     } else if (error.request) {

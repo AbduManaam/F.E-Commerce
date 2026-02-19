@@ -22,6 +22,7 @@ import UserProtectedRoute from "./Route/UserProtectedRoute";
 import AdminProtectedRoute from "./Admin/Router/AdminProtectedRoute ";
 import Login from "./Components/Login";
 import ForgotPassword from "./Components/ForgotPassword";
+import AdminLogin from "./Admin/Pages/Admin_Login";
 
 const AppContent = () => {
   const location = useLocation();
@@ -70,6 +71,8 @@ const AppContent = () => {
           <Route path="/admin/users/create" element={<UserCreate />} />
           <Route path="/admin/users/:id" element={<UserView />} />
           <Route path="/admin/users/edit/:id" element={<UserEdit />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+
         </Route>
 
         {/* 404 PAGE */}

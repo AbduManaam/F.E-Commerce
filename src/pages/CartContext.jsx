@@ -91,12 +91,14 @@ const loadCart = async () => {
       const response = await apiService.addToCart(product.id, 1);
       
       if (response.success) {
-      await loadCart(); // ✅ replaces manual setCart
+      await loadCart(); 
       toast.success("✅ Product added to cart!");
+    }else{
+      toast.error(response.message||"Failed to AddCart");
     }
     } catch (err) {
       console.error("Add to cart failed:", err);
-      toast.error("Failed to add to cart");
+      toast.error(err?.message||"Failed to add to cart");
     }
   };
 

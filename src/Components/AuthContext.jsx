@@ -95,6 +95,7 @@ const logout = async () => {
         user,
         isAdmin,
         loading,
+        isLoading: loading,
         error,
         login,
         signup: authApi.signup,

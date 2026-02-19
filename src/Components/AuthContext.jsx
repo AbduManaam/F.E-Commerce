@@ -62,6 +62,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
 
     if (!result.success) {
+        
       setError(result.message);
       return result;
     }

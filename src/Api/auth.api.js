@@ -17,7 +17,8 @@ const authApi = {
         message:
           error.response?.data?.error?.message ||
           error.response?.data?.message ||
-          "Login failed",
+          error.message ||       
+         "Invalid email or password",
       };
     }
   },
@@ -114,7 +115,7 @@ async resetPassword(email, otp, newPassword) {
 
   // 👤 PROFILE
   async getProfile() {
-    const res = await goApi.get("/auth/profile");
+    const res = await goApi.get("/user/profile");
     return res.data;
   },
 

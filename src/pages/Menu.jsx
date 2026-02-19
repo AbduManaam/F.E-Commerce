@@ -146,7 +146,7 @@ const Menu = () => {
       fetchProducts(selectedCategory, 1, searchTerm, sortBy, priceRange);
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchTerm, sortBy, priceRange]);
+  }, [searchTerm, sortBy]);
 
   // ✅ Accepts both name and ID
   const handleFilter = (categoryName, categoryId = "") => {
@@ -328,7 +328,10 @@ const Menu = () => {
                   {priceRanges.map((range) => (
                     <button
                       key={range.value}
-                      onClick={() => setPriceRange(range.value)}
+                      onClick={() => {
+                        setPriceRange(range.value);
+                        fetchProducts(selectedCategory, 1, searchTerm, sortBy, range.value);
+                        }}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                         priceRange === range.value
                           ? "bg-blue-500 text-white shadow-md"

@@ -1,253 +1,3 @@
-// import React, { useEffect, useState } from "react";
-// import apiService from "../service/api.service";
-// import Items from "../Components/Items";
-// import { useCart } from "./CartContext";
-// import { useWishlist } from "./WishlistContext";
-
-// const Menu = () => {
-//   const [products, setProducts] = useState([]);
-//   const [categories, setCategories] = useState([]);
-//   const [selectedCategory, setSelectedCategory] = useState("All");
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const [totalCount, setTotalCount] = useState(0);
-//   const [loading, setLoading] = useState(true);
-
-//   const itemsPerPage = 8;
-
-//   const { cart, addToCart } = useCart();
-//   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
-
-//   // ✅ Transform backend data to match Items component expectations
-//   const transformProduct = (backendProduct) => {
-//     // Extract image URLs from backend Images array
-//     let imageUrls = [];
-//     if (backendProduct.Images && Array.isArray(backendProduct.Images) && backendProduct.Images.length > 0) {
-//       imageUrls = backendProduct.Images.map(img => img.URL || img.url).filter(Boolean);
-//     }
-    
-//     // If no images, use placeholder
-//     if (imageUrls.length === 0) {
-//       imageUrls = ["/images/placeholder.png"];
-//     }
-
-//     return {
-//       id: backendProduct.ID,
-//       title: backendProduct.Name,
-//       description: backendProduct.Description || "",
-//       images: imageUrls,
-//       price: backendProduct.FinalPrice || backendProduct.Price || 0,
-//       stock: backendProduct.Stock,
-//       category_name: backendProduct.CategoryName || backendProduct.category_name,
-//       // Keep original data for reference if needed
-//       _original: backendProduct
-//     };
-//   };
-
-//   // Fetch products from backend
-//   const fetchProducts = async (category = "All", page = 1, search = "") => {
-//     try {
-//       setLoading(true);
-
-//       const response = await apiService.getFilteredProducts({
-//         category_name: category === "All" ? "" : category,
-//         page: page,
-//         limit: itemsPerPage,
-//         search: search,
-//         sort: "price",
-//         order: "desc",
-//       });
-
-//       console.log("FULL RESPONSE:", response);
-//       console.log("DATA:", response.data);
-
-//       if (response.success) {
-//         const productList = response.data.products || [];
-        
-//         // ✅ Transform products to match frontend expectations
-//         const transformedProducts = productList.map(transformProduct);
-        
-//         console.log("Transformed Products:", transformedProducts);
-
-//         setProducts(transformedProducts);
-//         setTotalCount(response.data.total || 0);
-//         setCurrentPage(page);
-
-//         // Extract categories on first load
-//         if (categories.length === 0) {
-//           const uniqueCategories = [
-//             "All",
-//             ...new Set(
-//               productList
-//                 .map((p) => p.CategoryName || p.category_name)
-//                 .filter(Boolean)
-//             ),
-//           ];
-//           setCategories(uniqueCategories);
-//         }
-//       } else {
-//         console.error("Failed to fetch products:", response.message);
-//         setProducts([]);
-//         setTotalCount(0);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching products:", error);
-//       setProducts([]);
-//       setTotalCount(0);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchProducts();
-//   }, []);
-
-//   // Handle category filter
-//   const handleFilter = (category) => {
-//     setSelectedCategory(category);
-//     setCurrentPage(1);
-//     fetchProducts(category, 1, searchTerm);
-//   };
-
-//   // Handle search
-//   const handleSearch = (value) => {
-//     setSearchTerm(value);
-//     setCurrentPage(1);
-//     fetchProducts(selectedCategory, 1, value);
-//   };
-
-//   // Pagination
-//   const totalPages = Math.ceil(totalCount / itemsPerPage);
-
-//   const goToPage = (page) => {
-//     if (page >= 1 && page <= totalPages) {
-//       fetchProducts(selectedCategory, page, searchTerm);
-//       // Scroll to top of products section
-//       window.scrollTo({ top: 0, behavior: 'smooth' });
-//     }
-//   };
-
-//   return (
-//     <div className="p-16 py-48 bg-white min-h-screen">
-//       <h1 className="text-2xl font-bold mb-6 text-center">Menu</h1>
-
-//       {/* Search Input */}
-//       <div className="flex justify-center mb-8">
-//         <input
-//           type="text"
-//           placeholder="Search products..."
-//           value={searchTerm}
-//           onChange={(e) => handleSearch(e.target.value)}
-//           className="border px-4 py-2 rounded w-80"
-//         />
-//       </div>
-
-//       {/* Filter Buttons */}
-//       <div className="flex flex-wrap justify-center gap-3 mb-36">
-//         {categories.map((cat) => (
-//           <button
-//             key={cat}
-//             onClick={() => handleFilter(cat)}
-//             className={`px-4 py-2 rounded-full text-sm font-semibold border ${
-//               selectedCategory === cat
-//                 ? "bg-solidOne text-white border-solidOne"
-//                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-//             }`}
-//           >
-//             {cat}
-//           </button>
-//         ))}
-//       </div>
-
-//       {/* Product Grid */}
-//       {loading ? (
-//         <div className="flex justify-center items-center py-20">
-//           <p className="text-center text-lg text-gray-500">Loading products...</p>
-//         </div>
-//       ) : products.length === 0 ? (
-//         <div className="flex justify-center items-center py-20">
-//           <p className="text-center text-lg text-gray-500">
-//             {searchTerm 
-//               ? `No products found matching "${searchTerm}"`
-//               : "No products available."}
-//           </p>
-//         </div>
-//       ) : (
-//         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-16 mt-10">
-//           {products.map((product) => {
-//             console.log("Rendering product:", product);
-//             return (
-//               <div key={product.id} className="w-full max-w-[380px] mx-auto">
-//                 <Items product={product} />
-//               </div>
-//             );
-//           })}
-//         </div>
-//       )}
-
-//       {/* Pagination */}
-//       {!loading && totalPages > 1 && (
-//         <div className="flex items-center justify-center mt-16">
-//           <div className="flex items-center justify-between w-full max-w-80 text-gray-500 font-medium">
-            
-//             {/* Prev Button */}
-//             <button
-//               onClick={() => goToPage(currentPage - 1)}
-//               disabled={currentPage === 1}
-//               className="rounded-full bg-slate-200/50 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-300 transition"
-//               aria-label="Previous page"
-//             >
-//               ◀
-//             </button>
-
-//             {/* Page Numbers */}
-//             <div className="flex items-center gap-2 text-sm font-medium">
-//               {[...Array(totalPages)].map((_, i) => {
-//                 const pageNum = i + 1;
-//                 return (
-//                   <button
-//                     key={`page-${pageNum}`}
-//                     onClick={() => goToPage(pageNum)}
-//                     className={`h-10 w-10 flex items-center justify-center rounded-full transition ${
-//                       currentPage === pageNum
-//                         ? "text-indigo-500 border border-indigo-200 bg-indigo-50"
-//                         : "hover:bg-gray-100"
-//                     }`}
-//                     aria-label={`Go to page ${pageNum}`}
-//                     aria-current={currentPage === pageNum ? "page" : undefined}
-//                   >
-//                     {pageNum}
-//                   </button>
-//                 );
-//               })}
-//             </div>
-
-//             {/* Next Button */}
-//             <button
-//               onClick={() => goToPage(currentPage + 1)}
-//               disabled={currentPage === totalPages}
-//               className="rounded-full bg-slate-200/50 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-300 transition"
-//               aria-label="Next page"
-//             >
-//               ▶
-//             </button>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Pagination Info */}
-//       {!loading && products.length > 0 && (
-//         <div className="text-center mt-4 text-sm text-gray-500">
-//           Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} products
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default Menu;
-//------------------------------------------------------------------------------------------------------------------------------------------------
 import React, { useEffect, useState } from "react";
 import apiService from "../service/api.service";
 import Items from "../Components/Items";
@@ -263,8 +13,8 @@ const Menu = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  
-  // New filter states
+
+  // Filter states
   const [sortBy, setSortBy] = useState("newest");
   const [priceRange, setPriceRange] = useState("all");
   const [viewMode, setViewMode] = useState("grid");
@@ -303,7 +53,7 @@ const Menu = () => {
     }
 
     return {
-      id: backendProduct.ID,
+      id: Number(backendProduct.ID),
       title: backendProduct.Name,
       description: backendProduct.Description || "",
       images: imageUrls,
@@ -315,60 +65,76 @@ const Menu = () => {
     };
   };
 
-  const fetchProducts = async (category = "All", page = 1, search = "", sort = sortBy, price = priceRange) => {
-    try {
-      setLoading(true);
+  // ✅ Fetch categories — stores full objects {ID, Name}
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8080/categories/");
+        const data = await res.json();
+        setCategories(data); // [{ID: 13, Name: "Curry"}, ...]
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+        setCategories([]);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-      const params = {
-        category_name: category === "All" ? "" : category,
-        page: page,
-        limit: itemsPerPage,
-        search: search,
-        sort: sort.includes('price') ? 'price' : 'created_at',
-        order: sort === 'price-high' ? 'desc' : 'asc',
-      };
+  // ✅ Accepts categoryId to send to backend
+ const fetchProducts = async (
+  category = "All",
+  page = 1,
+  search = "",
+  sort = sortBy,
+  price = priceRange,
+  categoryId = ""
+) => {
+  try {
+    setLoading(true);
 
-      // Add price filter if selected
-      if (price !== 'all') {
-        const [min, max] = price.split('-').map(p => p.replace('+', ''));
-        params.min_price = min;
-        if (max) params.max_price = max;
+    const params = {
+      // ✅ only send category_id, not category_name
+      ...(categoryId ? { category_id: categoryId } : {}),
+      page: page,
+      limit: itemsPerPage,
+      search: search,
+      sort: sort.includes('price') ? 'price' : 'created_at',
+      order: sort === 'price-high' ? 'desc' : 'asc',
+    };
+
+    // Add price filter if selected
+    if (price !== 'all') {
+      const [min, max] = price.split('-').map(p => p.replace('+', ''));
+      params.min_price = min;
+      if (max) params.max_price = max;
+    }
+
+    const response = await apiService.getFilteredProducts(params);
+
+    if (response.success) {
+      const productList = response.data.products || [];
+      let transformedProducts = productList.map(transformProduct);
+
+      // Client-side sorting for name
+      if (sort === 'name') {
+        transformedProducts.sort((a, b) => a.title.localeCompare(b.title));
       }
 
-      const response = await apiService.getFilteredProducts(params);
-
-      if (response.success) {
-        const productList = response.data.products || [];
-        let transformedProducts = productList.map(transformProduct);
-
-        // Client-side sorting for name
-        if (sort === 'name') {
-          transformedProducts.sort((a, b) => a.title.localeCompare(b.title));
-        }
-
-        setProducts(transformedProducts);
-        setTotalCount(response.data.total || 0);
-        setCurrentPage(page);
-
-        if (categories.length === 0) {
-          const uniqueCategories = [
-            "All",
-            ...new Set(productList.map((p) => p.CategoryName || p.category_name).filter(Boolean)),
-          ];
-          setCategories(uniqueCategories);
-        }
-      } else {
-        setProducts([]);
-        setTotalCount(0);
-      }
-    } catch (error) {
-      console.error("Error fetching products:", error);
+      setProducts(transformedProducts);
+      setTotalCount(response.data.total || 0);
+      setCurrentPage(page);
+    } else {
       setProducts([]);
       setTotalCount(0);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    setProducts([]);
+    setTotalCount(0);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchProducts();
@@ -382,10 +148,11 @@ const Menu = () => {
     return () => clearTimeout(timer);
   }, [searchTerm, sortBy, priceRange]);
 
-  const handleFilter = (category) => {
-    setSelectedCategory(category);
+  // ✅ Accepts both name and ID
+  const handleFilter = (categoryName, categoryId = "") => {
+    setSelectedCategory(categoryName);
     setCurrentPage(1);
-    fetchProducts(category, 1, searchTerm, sortBy, priceRange);
+    fetchProducts(categoryName, 1, searchTerm, sortBy, priceRange, categoryId);
   };
 
   const clearFilters = () => {
@@ -394,10 +161,11 @@ const Menu = () => {
     setSortBy("newest");
     setPriceRange("all");
     setCurrentPage(1);
-    fetchProducts("All", 1, "", "newest", "all");
+    fetchProducts("All", 1, "", "newest", "all", "");
   };
 
-  const hasActiveFilters = selectedCategory !== "All" || searchTerm || sortBy !== "newest" || priceRange !== "all";
+  const hasActiveFilters =
+    selectedCategory !== "All" || searchTerm || sortBy !== "newest" || priceRange !== "all";
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
@@ -409,15 +177,16 @@ const Menu = () => {
   };
 
   return (
-    <div className="min-h-screen  pt-24 pb-16">
-      {/* Header Section */}
+    <div className="min-h-screen pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Our Menu</h1>
           <p className="text-gray-600">Discover our delicious selection of dishes</p>
         </div>
 
-        {/* Search Bar - Centered */}
+        {/* Search Bar */}
         <div className="max-w-2xl mx-auto mb-8">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -439,11 +208,11 @@ const Menu = () => {
           </div>
         </div>
 
-        {/* Filter Bar - Card Style */}
+        {/* Filter Bar */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            
-            {/* Left: Filter Toggle & Active Filters */}
+
+            {/* Left: Filter Toggle & Active Filter Pills */}
             <div className="flex items-center gap-4 flex-wrap">
               <button
                 onClick={() => setShowFilters(!showFilters)}
@@ -456,11 +225,10 @@ const Menu = () => {
                 )}
               </button>
 
-              {/* Active Filter Pills */}
               {selectedCategory !== "All" && (
                 <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">
                   {selectedCategory}
-                  <button onClick={() => handleFilter("All")} className="hover:text-amber-900">
+                  <button onClick={() => handleFilter("All", "")} className="hover:text-amber-900">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -485,7 +253,6 @@ const Menu = () => {
 
             {/* Right: Sort & View Toggle */}
             <div className="flex items-center gap-4">
-              {/* Sort Dropdown */}
               <div className="relative">
                 <select
                   value={sortBy}
@@ -499,7 +266,6 @@ const Menu = () => {
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
 
-              {/* View Mode Toggle */}
               <div className="flex bg-gray-100 rounded-xl p-1">
                 <button
                   onClick={() => setViewMode("grid")}
@@ -520,21 +286,36 @@ const Menu = () => {
           {/* Expandable Filter Section */}
           {showFilters && (
             <div className="mt-6 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Categories */}
+
+              {/* ✅ Categories */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">Categories</h3>
                 <div className="flex flex-wrap gap-2">
+
+                  {/* All button */}
+                  <button
+                    onClick={() => handleFilter("All", "")}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      selectedCategory === "All"
+                        ? "bg-amber-500 text-white shadow-md"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    All
+                  </button>
+
+                  {/* Dynamic category buttons from backend */}
                   {categories.map((cat) => (
                     <button
-                      key={cat}
-                      onClick={() => handleFilter(cat)}
+                      key={cat.ID}
+                      onClick={() => handleFilter(cat.Name, cat.ID)}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        selectedCategory === cat
+                        selectedCategory === cat.Name
                           ? "bg-amber-500 text-white shadow-md"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      {cat}
+                      {cat.Name}
                     </button>
                   ))}
                 </div>
@@ -581,7 +362,7 @@ const Menu = () => {
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
             <p className="text-gray-500 mb-6">
-              {searchTerm 
+              {searchTerm
                 ? `We couldn't find any products matching "${searchTerm}"`
                 : "No products available in this category."}
             </p>
@@ -596,8 +377,8 @@ const Menu = () => {
           </div>
         ) : (
           <div className={`grid gap-6 ${
-            viewMode === "grid" 
-              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+            viewMode === "grid"
+              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               : "grid-cols-1"
           }`}>
             {products.map((product) => (
@@ -619,11 +400,10 @@ const Menu = () => {
               >
                 Previous
               </button>
-              
+
               <div className="flex items-center gap-1">
                 {[...Array(totalPages)].map((_, i) => {
                   const pageNum = i + 1;
-                  // Show first, last, current, and neighbors
                   if (
                     pageNum === 1 ||
                     pageNum === totalPages ||

@@ -7,6 +7,7 @@ import React from "react";
 import { AuthProvider } from "./Components/AuthContext.jsx";
 import { CartProvider } from "./pages/CartContext.jsx";
 import { WishlistProvider } from "./pages/WishlistContext.jsx";
+import { OrderProvider } from "./pages/OrderContext.jsx";
 
 
 createRoot(document.getElementById("root")).render(
@@ -15,11 +16,12 @@ createRoot(document.getElementById("root")).render(
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
-            <App />
+            <OrderProvider>  
+             <App />
+            </OrderProvider>
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
-

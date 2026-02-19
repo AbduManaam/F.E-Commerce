@@ -1,137 +1,370 @@
-
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useState } from "react";
+import { useOrders } from "./OrderContext";
 import { useAuth } from "../Components/AuthContext";
-
-const ORDERS_API = "http://127.0.0.1:8080/orders";
-const PRODUCTS_API = "http://127.0.0.1:8080/products"; 
+import { 
+  Package, 
+  Truck, 
+  CheckCircle, 
+  XCircle, 
+  Clock,
+  ChevronDown,
+  ChevronUp
+} from "lucide-react";
 
 const MyOrders = () => {
   const { user } = useAuth();
-  const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]);
+  const { orders, loading, cancelOrder, cancelOrderItem } = useOrders();
+  console.log("first order:", orders[0]);
 
-  // fetch products
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await axios.get(PRODUCTS_API);
-        setProducts(res.data || []);
-      } catch (err) {
-        console.error("Failed to fetch products:", err);
-      }
-    };
-    fetchProducts();
-  }, []);
+  const [expandedOrders, setExpandedOrders] = useState(new Set());
+  const [filter, setFilter] = useState("all");
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancellingItem, setCancellingItem] = useState(null);
 
-  // fetch user orders
-  useEffect(() => {
-    if (!user) return;
+  const toggleOrder = (orderId) => {
+    const newExpanded = new Set(expandedOrders);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+    }
+    setExpandedOrders(newExpanded);
+  };
 
-    const fetchOrders = async () => {
-      try {
-        const res = await axios.get(`${ORDERS_API}?userId=${user.id}`);
-        const filteredOrders = (res.data || []).filter(order => {
-          // Filter out orders with no items, zero amount, or unknown products
-          const hasItems = order.items && order.items.length > 0;
-          const hasValidAmount = Number(order.amount || 0) > 0;
-          
-          // Check if any items have valid product information
-          const hasValidProducts = hasItems && order.items.some(item => {
-            const product = products.find(p => p.id === item.productId);
-            return product && product.title && product.title !== "Unknown Product";
-          });
-
-          return hasItems && hasValidAmount && hasValidProducts;
-        });
-        setOrders(filteredOrders);
-      } catch (err) {
-        console.error("Failed to fetch orders:", err);
-      }
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      pending: { color: "bg-yellow-100 text-yellow-800", icon: Clock, label: "Pending" },
+      confirmed: { color: "bg-blue-100 text-blue-800", icon: Package, label: "Confirmed" },
+      paid: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: "Paid" },
+      shipped: { color: "bg-purple-100 text-purple-800", icon: Truck, label: "Shipped" },
+      delivered: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: "Delivered" },
+      cancelled: { color: "bg-red-100 text-red-800", icon: XCircle, label: "Cancelled" },
+      partially_cancelled: { color: "bg-orange-100 text-orange-800", icon: XCircle, label: "Partially Cancelled" },
+      refunded:  { color: "bg-purple-50 text-purple-700 border-purple-200" },  
     };
 
-    fetchOrders();
-  }, [user, products]); // Added products dependency
+    const config = statusConfig[status?.toLowerCase()] || statusConfig.pending;
+    const Icon = config.icon;
 
-  if (!user) {
-    return <p className="text-center py-20">Please login to view orders 🚨</p>;
+    return (
+      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
+        <Icon className="w-4 h-4" />
+        {config.label}
+      </span>
+    );
+  };
+
+  const getItemStatusBadge = (status) => {
+    const statusConfig = {
+      pending: { color: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+      confirmed: { color: "bg-blue-50 text-blue-700 border-blue-200" },
+      cancelled: { color: "bg-red-50 text-red-700 border-red-200" },
+      refunded: { color: "bg-purple-50 text-purple-700 border-purple-200" }
+    };
+
+    const config = statusConfig[status?.toLowerCase()] || statusConfig.pending;
+
+    return (
+      <span className={`px-2 py-1 rounded text-xs font-medium border ${config.color}`}>
+        {status}
+      </span>
+    );
+  };
+
+
+  const getPaymentStatusLabel = (paymentStatus, orderStatus, paymentMethod) => {
+  if (orderStatus === 'cancelled') {
+    const method = paymentMethod?.toLowerCase();
+    
+    if (method === 'cod') {
+      return 'Not Applicable';
+    }
+    
+    if (paymentStatus === 'paid') {
+      return 'Refund Initiated';
+    }
+    if (paymentStatus === 'paid') return 'Refund Initiated';
+    // razorpay/stripe/paypal - not yet paid
+    return 'Not Charged';
   }
 
-  if (orders.length === 0) {
+  // Order not cancelled — show normal status
+  return paymentStatus
+    ? paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)
+    : 'Pending';
+};
+
+
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to cancel this entire order?")) return;
+    await cancelOrder(orderId);
+  };
+
+  const handleCancelItem = async (orderId, itemId) => {
+    if (!cancelReason.trim()) {
+      alert("Please provide a reason for cancellation");
+      return;
+    }
+    await cancelOrderItem(orderId, itemId, cancelReason);
+    setCancellingItem(null);
+    setCancelReason("");
+  };
+
+  const filteredOrders = orders.filter(order => {
+    if (filter === "all") return true;
+    return order.status?.toLowerCase() === filter;
+  });
+
+  if (!user) {
     return (
-      <div className="max-w-4xl mx-auto py-40 px-4">
-        <h2 className="text-2xl font-bold mb-6">My Orders</h2>
-        <p>No orders found.</p>
+      <div className="max-w-6xl mx-auto py-40 px-4 text-center">
+        <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Please Login</h2>
+        <p className="text-gray-600">Login to view your orders</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto py-40 px-4 text-center">
+        <div className="animate-spin w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading your orders...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-40 px-4 space-y-6">
-      <h2 className="text-2xl font-bold mb-6">My Orders</h2>
+    <div className="max-w-6xl mx-auto py-40 px-4">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">My Orders</h1>
+        <p className="text-gray-600">Track and manage your orders</p>
+      </div>
 
-      {orders.map((order) => {
-        const items = order.items || [];
-        const amount = Number(order.amount || 0);
-        const paymentMethod = order.paymentMethod || "N/A";
-        const status = order.status || "Pending";
-        const createdAt = order.createdAt
-          ? new Date(order.createdAt).toLocaleDateString()
-          : "Unknown";
-
-        return (
-          <div
-            key={order.id || Math.random()}
-            className="bg-white p-6 rounded-xl shadow border"
+      {/* Filters */}
+      <div className="mb-6 flex gap-2 flex-wrap">
+        {["all", "pending", "confirmed", "shipped", "delivered", "cancelled"].map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilter(status)}
+            className={`px-4 py-2 rounded-lg font-medium transition ${
+              filter === status
+                ? "bg-amber-500 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg">Order #{order.id || "N/A"}</h3>
-              <p className="text-gray-500 text-sm">{createdAt}</p>
-            </div>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
 
-            <div className="space-y-4">
-              {items.length === 0 ? (
-                <p className="text-gray-700">No items in this order.</p>
-              ) : (
-                items.map((item, idx) => {
-                  const product = products.find((p) => p.id === item.productId) || {};
-                  const image = Array.isArray(product.images)
-                    ? product.images[0]
-                    : product.images || "https://via.placeholder.com/80";
+      {/* Orders List */}
+      {filteredOrders.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-xl">
+          <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-xl font-semibold mb-2">No Orders Found</h3>
+          <p className="text-gray-600">
+            {filter === "all"
+              ? "You haven't placed any orders yet"
+              : `No ${filter} orders`}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredOrders.map((order) => {
+            const isExpanded = expandedOrders.has(order.id);
+            const orderDate = new Date(order.created_at).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            });
 
-                  return (
-                    <div key={idx} className="flex items-center gap-4">
-                      <img
-                        src={image}
-                        alt={product.title || "Product"}
-                        className="w-16 h-16 object-cover rounded"
-                      />
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{product.title || "Unknown Product"}</h4>
-                        <p className="text-gray-500 text-sm">
-                          Size: {item.size || "N/A"} × {item.quantity || 0}
-                        </p>
-                        <p className="text-gray-700 font-medium">
-                          Price: $
-                          {product.price && item.size
-                            ? Number(product.price[item.size] || 0).toFixed(2)
-                            : "0.00"}
-                        </p>
-                      </div>
+            return (
+              <div
+                key={order.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+              >
+                {/* Order Header */}
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold mb-1">Order #{order.id}</h3>
+                      <p className="text-sm text-gray-600">{orderDate}</p>
                     </div>
-                  );
-                })
-              )}
-            </div>
+                    <div className="text-right">
+                      {getStatusBadge(order.status)}
+                      <p className="text-lg font-bold mt-2">
+                        ${order.final_total?.toFixed(2) || "0.00"}
+                      </p>
+                      {order.discount > 0 && (
+                        <p className="text-sm text-green-600">
+                          Saved ${order.discount.toFixed(2)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
-            <div className="mt-4 text-sm text-gray-600 ">
-              <p>Payment: {paymentMethod}</p>
-              <p>Status: {status}</p>
-              <p className="font-bold">Total: ${amount.toFixed(2)}</p>
-            </div>
-          </div>
-        );
-      })}
+                  {/* Order Summary */}
+                  <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                    <span>{order.items?.length || 0} items</span>
+                    <span>Payment: {order.payment_method || "COD"}</span>
+                    <span className={`font-medium ${
+                    order.payment_status === 'paid' ? 'text-green-600' : 
+                    order.status === 'cancelled' ? 'text-gray-400' : 'text-yellow-600'
+                    }`}>
+                    {getPaymentStatusLabel(order.payment_status, order.status, order.payment_method)}
+                    </span>
+                  </div>
+
+                  {/* Expand/Collapse Button */}
+                  <button
+                    onClick={() => toggleOrder(order.id)}
+                    className="w-full flex items-center justify-center gap-2 py-2 text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                  >
+                    {isExpanded ? (
+                      <>
+                        <ChevronUp className="w-5 h-5" />
+                        Hide Details
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-5 h-5" />
+                        View Details
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Order Details (Expanded) */}
+                {isExpanded && (
+                  <div className="border-t border-gray-200 bg-gray-50 p-6">
+                    {/* Items */}
+                    <h4 className="font-semibold mb-4">Order Items</h4>
+                    <div className="space-y-4 mb-6">
+                      {order.items?.map((item) => (
+                        <div
+                          key={item.id}
+                          className="bg-white p-4 rounded-lg border border-gray-200"
+                        >
+                          <div className="flex gap-4">
+                            {/* Product Image */}
+                            <img
+                              src={item.product?.images?.[0]?.url || "/images/placeholder.png"}
+                              alt={item.product?.name || "Product"}
+                              className="w-20 h-20 object-cover rounded-lg"
+                              onError={(e) => e.target.src = "/images/placeholder.png"}
+                            />
+
+                            {/* Product Details */}
+                            <div className="flex-1">
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <h5 className="font-semibold">
+                                    {item.product?.name || "Unknown Product"}
+                                  </h5>
+                                  <p className="text-sm text-gray-600">
+                                    Quantity: {item.quantity} × ${item.final_price?.toFixed(2)}
+                                  </p>
+                                  {item.discount_amount > 0 && (
+                                    <p className="text-sm text-green-600">
+                                      Discount: -${item.discount_amount.toFixed(2)}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="text-right">
+                                  {getItemStatusBadge(item.status)}
+                                  <p className="font-bold mt-2">${item.subtotal?.toFixed(2)}</p>
+                                </div>
+                              </div>
+
+                              {/* Cancel Item Button */}
+                              {(order.status === 'pending' || order.status === 'partially_cancelled') &&
+                            item.status === 'pending' && (
+                            <div className="mt-3">
+                                {cancellingItem === item.id ? (
+                                <div className="flex gap-2">
+                                    <input
+                                    type="text"
+                                    placeholder="Reason for cancellation"
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                                    />
+                                    <button
+                                    onClick={() => handleCancelItem(order.id, item.id)}
+                                    className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
+                                    >
+                                    Confirm
+                                    </button>
+                                    <button
+                                    onClick={() => {
+                                        setCancellingItem(null);
+                                        setCancelReason("");
+                                    }}
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300"
+                                    >
+                                    Cancel
+                                    </button>
+                                </div>
+                                ) : (
+                                <button
+                                    onClick={() => setCancellingItem(item.id)}
+                                    className="text-sm text-red-600 hover:underline"
+                                >
+                                    Cancel this item
+                                </button>
+                                )}
+                            </div>
+                            )}
+                              {/* Cancellation Info */}
+                              {item.status === 'cancelled' && item.cancellation_reason && (
+                                <p className="text-sm text-gray-600 mt-2">
+                                  Reason: {item.cancellation_reason}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Shipping Address */}
+                    {order.shipping_address && (
+                      <div className="mb-6">
+                        <h4 className="font-semibold mb-2">Shipping Address</h4>
+                        <div className="bg-white p-4 rounded-lg border border-gray-200 text-sm">
+                          <p className="font-medium">{order.shipping_address.full_name}</p>
+                          <p className="text-gray-600">{order.shipping_address.phone}</p>
+                          <p className="text-gray-600 mt-2">
+                            {order.shipping_address.address}
+                            {order.shipping_address.landmark && `, ${order.shipping_address.landmark}`}
+                          </p>
+                          <p className="text-gray-600">
+                            {order.shipping_address.city}, {order.shipping_address.state} - {order.shipping_address.zip_code}
+                          </p>
+                          <p className="text-gray-600">{order.shipping_address.country}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cancel Order Button */}
+                    {(order.status === 'pending' || order.status === 'partially_cancelled') && (
+                      <button
+                        onClick={() => handleCancelOrder(order.id)}
+                        className="w-full py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
+                      >
+                        Cancel Entire Order
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

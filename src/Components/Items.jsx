@@ -16,13 +16,17 @@ const Items = ({ product, viewMode = "grid" }) => {
   const { wishlist, addToWishlist, removeFromWishlist, moveToCart } = useWishlist();
   const currency = "$";
 
-  const isInWishlist = wishlist.some((w) => w.id === product.id);
+  const isInWishlist = wishlist.some((w) => Number(w.id) === Number(product.id));
 
   const handleAddToCart = () => {
     addToCart(product, size);
   };
 
   const handleWishlistToggle = () => {
+
+     console.log("Product being added:", product); // ✅ Add this
+  console.log("Product ID:", product.id);
+
     if (isInWishlist) removeFromWishlist(product.id);
     else addToWishlist(product);
   };

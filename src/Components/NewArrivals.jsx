@@ -26,7 +26,7 @@ const NewArrivals = ({ products }) => {
     }
 
     return {
-      id: product.ID || product.id,
+      id: Number(product.ID) || Number(product.id),
       title: product.Name || product.title,
       description: product.Description || product.description || "",
       images:imageUrls,

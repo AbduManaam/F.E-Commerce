@@ -35,7 +35,7 @@ const transformProduct = (product) => {
   }
 
   return {
-    id: product.id || product.ID,
+          id: Number(product.ID) || Number(product.id),
     title: product.name || product.Name,
     description: product.description || product.Description || "",
     images: imageUrls,

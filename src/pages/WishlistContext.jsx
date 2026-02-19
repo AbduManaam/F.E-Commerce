@@ -35,7 +35,7 @@ export const WishlistProvider = ({ children }) => {
     }
 
     return {
-      id: backendProduct.ID,
+      id: Number(backendProduct.ID),
       title: backendProduct.Name,
       description: backendProduct.Description || "",
       images: imageUrls,
@@ -80,7 +80,7 @@ export const WishlistProvider = ({ children }) => {
     }
 
     // Check if already in wishlist
-    const existing = wishlist.find((item) => item.id === product.id);
+    const existing = wishlist.find((item) => Number(item.id) === Number(product.id));
     if (existing) {
       toast.info("❤️ This product is already in your wishlist!");
       return;
@@ -88,10 +88,9 @@ export const WishlistProvider = ({ children }) => {
 
     try {
       // POST /api/wishlist with { product_id: number }
-      const response = await apiService.addToWishlist(product.id);
+      const response = await apiService.addToWishlist(Number(product.id));
       
       if (response.success) {
-        // Update local state with the full product object
         setWishlist([...wishlist, product]);
         toast.success("❤️ Added to wishlist!");
       } else {
@@ -100,12 +99,10 @@ export const WishlistProvider = ({ children }) => {
     } catch (err) {
       console.error("Add to wishlist failed:", err);
       
-      // ✅ Handle duplicate error gracefully
       const errorMessage = err.response?.data?.error?.message || err.message || "";
       
       if (errorMessage.includes("duplicate key") || errorMessage.includes("unique constraint")) {
         toast.info("❤️ This product is already in your wishlist!");
-        // Reload wishlist to sync with backend
         loadWishlist();
       } else if (err.response?.status === 401 || err.status === 401) {
         toast.error("Session expired. Please login again.");

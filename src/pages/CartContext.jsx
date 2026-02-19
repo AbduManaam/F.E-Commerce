@@ -29,20 +29,49 @@ const loadCart = async () => {
   
   try {
     const response = await apiService.getCart();
+    
     if (response.success) {
-      // ✅ FIX: Ensure cart is always an array
-      const cartData = Array.isArray(response.data) ? response.data : [];
-      setCart(cartData);
-      const count = cartData.reduce((acc, item) => acc + (item.qty || 1), 0);
-      setCartCount(count);
+      const cartData = response.data;
+      
+      const transformedItems = cartData.Items?.map(item => {
+        console.log("🔍 Raw cart item from backend:", item);
+        const product = item.Product || {};
+        const imageUrls = product.Images?.map(img => img.URL || img.url) || [];
+        
+        // Handle price - check if product has multiple prices
+        let priceData;
+        if (product.Prices && Array.isArray(product.Prices) && product.Prices.length > 0) {
+          // Convert prices array to object {H: 10, F: 20}
+          priceData = product.Prices.reduce((acc, p) => {
+            acc[p.Type] = p.Price;
+            return acc;
+          }, {});
+        } else {
+          // Single price
+          priceData = product.FinalPrice || product.Price || 0;
+        }
+        
+        return {
+          id: item.ProductID,
+          cartItemId: item.ID,
+          title: product.Name || "Unknown Product",
+          description: product.Description || "",
+          price: priceData,  // ✅ Can be object or number
+          images: imageUrls.length > 0 ? imageUrls : ["/images/placeholder.png"],
+          qty: item.Quantity,
+          size: item.Size || 'H',  // Default to Half
+          stock: product.Stock || 0,
+          category_name: product.Category?.Name || "",
+        };
+      }) || [];
+      
+      setCart(transformedItems);
+      setCartCount(transformedItems.reduce((acc, item) => acc + item.qty, 0));
     }
   } catch (err) {
-    console.error("Failed to fetch cart:", err);
-    setCart([]); // ✅ Set empty array on error
-    setCartCount(0);
+    console.error("Failed to load cart:", err);
   }
 };
-
 
   // ✅ Add to cart using POST /api/cart
   const addToCart = async (product, size) => {
@@ -62,73 +91,93 @@ const loadCart = async () => {
       const response = await apiService.addToCart(product.id, 1);
       
       if (response.success) {
-        const newItem = { ...product, size, qty: 1 };
-        const newCart = [...cart, newItem];
-        setCart(newCart);
-        setCartCount(cartCount + 1);
-        toast.success("✅ Product added to cart!");
-      }
+      await loadCart(); // ✅ replaces manual setCart
+      toast.success("✅ Product added to cart!");
+    }
     } catch (err) {
       console.error("Add to cart failed:", err);
       toast.error("Failed to add to cart");
     }
   };
 
-  // ✅ Remove from cart using DELETE /api/cart/item/:itemId
-  const removeFromCart = async (id, size) => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
+const removeFromCart = async (id, size) => {
+  if (!user) {
+    navigate("/login");
+    return;
+  }
 
-    try {
-      // Find the cart item ID (you'll need this from your backend response)
-      const item = cart.find((item) => item.id === id && item.size === size);
-      if (!item) return;
+  const item = cart.find((item) => item.id === id && item.size === size);
+  if (!item) return;
 
-      const response = await apiService.removeCartItem(item.cartItemId || id);
-      
-      if (response.success) {
-        const newCart = cart.filter((item) => !(item.id === id && item.size === size));
-        setCart(newCart);
-        const count = newCart.reduce((acc, item) => acc + (item.qty || 1), 0);
-        setCartCount(count);
-        toast.info("🗑️ Product removed from cart");
-      }
-    } catch (err) {
-      console.error("Remove from cart failed:", err);
-      toast.error("Failed to remove from cart");
+  // ✅ Optimistically remove from UI first
+  const newCart = cart.filter((item) => !(item.id === id && item.size === size));
+  setCart(newCart);
+  setCartCount(newCart.reduce((acc, item) => acc + (item.qty || 1), 0));
+
+  try {
+    const response = await apiService.removeCartItem(item.cartItemId || item.id);
+    if (!response.success) {
+      // ✅ If API fails, reload cart to get correct state
+      await loadCart();
+      toast.error("Failed to remove item");
+    } else {
+      toast.info("🗑️ Product removed from cart");
     }
-  };
+  } catch (err) {
+    await loadCart(); // ✅ Re-sync on any error
+    toast.error("Failed to remove from cart");
+  }
+};
 
   // ✅ Update quantity using PUT /api/cart/item/:itemId
-  const updateQty = async (id, size, qty) => {
-    if (!user) {
-      navigate("/login");
+ const updateQty = async (id, size, qty) => {
+  if (!user) {
+    navigate("/login");
+    return;
+  }
+
+  try {
+    const item = cart.find((item) => item.id === id && item.size === size);
+    if (!item) {
+      console.error("Cart item not found");
       return;
     }
 
-    try {
-      const item = cart.find((item) => item.id === id && item.size === size);
-      if (!item) return;
-
-      const response = await apiService.updateCartItem(item.cartItemId || id, qty);
-      
-      if (response.success) {
-        const newCart = cart.map((item) =>
-          item.id === id && item.size === size ? { ...item, qty } : item
-        );
-        setCart(newCart);
-        const count = newCart.reduce((acc, item) => acc + (item.qty || 1), 0);
-        setCartCount(count);
-      }
-    } catch (err) {
-      console.error("Update quantity failed:", err);
-      toast.error("Failed to update quantity");
+    // ✅ cartItemId should always exist now
+    if (!item.cartItemId) {
+      console.error("Cart item missing cartItemId:", item);
+      toast.error("Invalid cart item");
+      return;
     }
-  };
 
-  // ✅ Clear cart
+    const response = await apiService.updateCartItem(item.cartItemId, qty);
+
+    if (response.success) {
+      const newCart = cart.map((cartItem) =>
+        cartItem.id === id && cartItem.size === size
+          ? { ...cartItem, qty }
+          : cartItem
+      );
+      setCart(newCart);
+      setCartCount(newCart.reduce((acc, item) => acc + item.qty, 0));
+      toast.success("Cart updated");
+    }
+  } catch (err) {
+    console.error("Update quantity failed:", err);
+    toast.error("Failed to update quantity");
+  }
+};
+
+// Reset Cart
+
+const resetCart = async () => {
+  setCart([]);
+  setCartCount(0);
+  await loadCart();
+};
+
+
+  //  Clear cart
   const clearCart = async () => {
     if (!user) {
       navigate("/login");
@@ -150,7 +199,7 @@ const loadCart = async () => {
 
   return (
     <CartContext.Provider
-      value={{ cart, cartCount, addToCart, removeFromCart, updateQty, clearCart, loadCart }}
+      value={{ cart, cartCount, addToCart, removeFromCart, updateQty, clearCart, loadCart,resetCart }}
     >
       {children}
     </CartContext.Provider>

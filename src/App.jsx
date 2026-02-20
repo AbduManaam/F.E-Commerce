@@ -36,22 +36,10 @@ const AppContent = () => {
 
       <Routes>
         {/* PUBLIC ROUTES */}
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/forgot-password"
-          element={
-            <PublicRoute>
-              <ForgotPassword />
-            </PublicRoute>
-          }
-        />
+        
+        <Route path="/login"element={<PublicRoute> <Login /> </PublicRoute>}/>
+        <Route path="/forgot-password"element={<PublicRoute> <ForgotPassword /> </PublicRoute>}/>
+          <Route path="/admin-login" element={<AdminLogin />} />
 
         {/* USER PROTECTED ROUTES */}
         <Route element={<UserProtectedRoute />}>
@@ -71,7 +59,6 @@ const AppContent = () => {
           <Route path="/admin/users/create" element={<UserCreate />} />
           <Route path="/admin/users/:id" element={<UserView />} />
           <Route path="/admin/users/edit/:id" element={<UserEdit />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
 
         </Route>
 

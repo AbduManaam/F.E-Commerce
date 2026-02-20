@@ -36,6 +36,9 @@ const AdminLogin = () => {
 
     try {
       const result = await login(email, password);
+      console.log("Full result",result);
+      console.log("user role result",result?.user);
+      
 
       if (!result?.success) {
         setGlobalError(result?.message || "Invalid credentials");
@@ -44,6 +47,8 @@ const AdminLogin = () => {
 
       // Check if the logged in user is actually admin
       const role = result?.user?.role || result?.user?.Role;
+      console.log("Role",role);
+      
       if (role !== "admin") {
         setGlobalError("Access denied. This login is for admins only.");
         // logout to clear the token since they're not admin

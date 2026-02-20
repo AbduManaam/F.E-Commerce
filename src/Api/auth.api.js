@@ -8,9 +8,12 @@ const authApi = {
       const { access_token, user } = res.data;
 
       localStorage.setItem("access_token", access_token);
-      localStorage.setItem("user", JSON.stringify(user));
+      const profileRes= await goApi.get("/user/profile");
+      const fullUser=profileRes.data;
 
-      return { success: true, user };
+      localStorage.setItem("user", JSON.stringify(fullUser));
+
+      return { success: true, user:fullUser };
     } catch (error) {
       return {
         success: false,

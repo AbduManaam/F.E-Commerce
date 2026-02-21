@@ -9,13 +9,11 @@ import {
   RefreshCw, AlertTriangle, CheckCircle, XCircle, Clock
 } from "lucide-react";
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
 const fmt = (n) => `$${(n || 0).toFixed(2)}`;
 const pct = (a, b) => (b ? ((a / b) * 100).toFixed(1) : 0);
 
 const DAY = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
 const StatCard = ({ icon: Icon, label, value, sub, color, bg }) => (
   <div className={`rounded-2xl p-5 flex items-center gap-4 shadow-sm border ${bg}`}>
     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
@@ -36,7 +34,6 @@ const SectionTitle = ({ children }) => (
   </h2>
 );
 
-// ─── Main Component ──────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
   const [orders,     setOrders]     = useState([]);
   const [users,      setUsers]      = useState([]);
@@ -59,7 +56,6 @@ export default function AnalyticsPage() {
         setOrders(Array.isArray(d) ? d : Array.isArray(d?.data) ? d.data : []);
       }
       if (uRes.status === "fulfilled") {
-        console.log("Users response:", uRes.value.data);
         const d = uRes.value.data;
         const arr = Array.isArray(d) ? d : Array.isArray(d?.data) ? d.data : [];
         setUsers(arr);
@@ -73,7 +69,6 @@ export default function AnalyticsPage() {
     finally { setLoading(false); }
   };
 
-  // ── Derived stats ────────────────────────────────────────────────────────
   const getStatus = (o) => (o.Status || o.status || "").toLowerCase();
   const getPaymentStatus = (o) => (o.PaymentStatus || o.payment_status || "").toLowerCase();
   const getTotal  = (o) => o.FinalTotal || o.final_total || o.Total || o.total || 0;
@@ -81,7 +76,6 @@ export default function AnalyticsPage() {
   const delivered = orders.filter(o => getStatus(o) === "delivered");
   const pending   = orders.filter(o => getStatus(o) === "pending");
   const cancelled = orders.filter(o => getStatus(o) === "cancelled");
-  // Refunded: order status "refunded" OR payment_status "refunded" (e.g. Razorpay cancelled after payment)
   const refunded  = orders.filter(o =>
     ["refunded", "refund"].includes(getStatus(o)) || getPaymentStatus(o) === "refunded"
   );
@@ -95,7 +89,6 @@ export default function AnalyticsPage() {
   const blockedUsers = users.filter(u => u.IsBlocked || u.is_blocked);
   const lowStock     = products.filter(p => (p.stock ?? p.Stock ?? 0) <= 5);
 
-  // ── Order status pie data ────────────────────────────────────────────────
   const pieData = [
     { name: "Delivered", value: delivered.length, color: "#10b981" },
     { name: "Pending",   value: pending.length,   color: "#f59e0b" },
@@ -104,7 +97,6 @@ export default function AnalyticsPage() {
     { name: "Refunded",  value: refunded.length,  color: "#8b5cf6" },
   ].filter(d => d.value > 0);
 
-  // ── Revenue last 7 days ──────────────────────────────────────────────────
   const last7 = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
@@ -116,7 +108,6 @@ export default function AnalyticsPage() {
     if (entry) { entry.revenue += getTotal(o); entry.orders += 1; }
   });
 
-  // ── Top products by order frequency ────────────────────────────────────
   const productCount = {};
   orders.forEach(o => {
     const items = o.Items || o.items || [];
@@ -130,7 +121,6 @@ export default function AnalyticsPage() {
     .slice(0, 5)
     .map(([name, qty]) => ({ name, qty }));
 
-  // ── Top customers ────────────────────────────────────────────────────────
   const customerMap = {};
   delivered.forEach(o => {
     const uid = o.UserID || o.user_id || o.User?.ID;
@@ -143,7 +133,6 @@ export default function AnalyticsPage() {
     .sort((a, b) => b.total - a.total)
     .slice(0, 5);
 
-  // ── New users this month ─────────────────────────────────────────────────
   const thisMonth = new Date();
   thisMonth.setDate(1); thisMonth.setHours(0, 0, 0, 0);
   const newUsersThisMonth = users.filter(u => {
@@ -158,7 +147,7 @@ export default function AnalyticsPage() {
   );
 
   return (
-    <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
+    <div className="p-6 space-y-8 rounded-3xl bg-white min-h-screen">
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -356,25 +345,6 @@ export default function AnalyticsPage() {
               <p className="text-gray-400 text-sm">All products are well stocked!</p>
             </div>
           )}
-        </div>
-      </section>
-
-      {/* ── Completion Rate Summary ── */}
-      <section className="bg-white rounded-2xl shadow-sm border p-5">
-        <SectionTitle>Performance Rates</SectionTitle>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { label: "Completion Rate",    value: `${pct(delivered.length, orders.length)}%`,  color: "text-emerald-600", desc: "Orders delivered" },
-            { label: "Cancellation Rate",  value: `${pct(cancelled.length, orders.length)}%`,  color: "text-red-600",     desc: "Orders cancelled" },
-            { label: "Refund Rate",        value: `${pct(refunded.length, orders.length)}%`,   color: "text-purple-600",  desc: "Orders refunded" },
-            { label: "Pending Rate",       value: `${pct(pending.length, orders.length)}%`,    color: "text-amber-600",   desc: "Orders still pending" },
-          ].map((r, i) => (
-            <div key={i} className="text-center">
-              <p className={`text-4xl font-bold ${r.color}`}>{r.value}</p>
-              <p className="text-sm font-semibold text-gray-700 mt-1">{r.label}</p>
-              <p className="text-xs text-gray-400">{r.desc}</p>
-            </div>
-          ))}
         </div>
       </section>
 

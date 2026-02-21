@@ -75,12 +75,16 @@ export default function AnalyticsPage() {
 
   // ── Derived stats ────────────────────────────────────────────────────────
   const getStatus = (o) => (o.Status || o.status || "").toLowerCase();
+  const getPaymentStatus = (o) => (o.PaymentStatus || o.payment_status || "").toLowerCase();
   const getTotal  = (o) => o.FinalTotal || o.final_total || o.Total || o.total || 0;
 
   const delivered = orders.filter(o => getStatus(o) === "delivered");
   const pending   = orders.filter(o => getStatus(o) === "pending");
   const cancelled = orders.filter(o => getStatus(o) === "cancelled");
-  const refunded  = orders.filter(o => ["refunded", "refund"].includes(getStatus(o)));
+  // Refunded: order status "refunded" OR payment_status "refunded" (e.g. Razorpay cancelled after payment)
+  const refunded  = orders.filter(o =>
+    ["refunded", "refund"].includes(getStatus(o)) || getPaymentStatus(o) === "refunded"
+  );
   const shipped   = orders.filter(o => ["shipped", "processing"].includes(getStatus(o)));
 
   const totalRevenue   = delivered.reduce((s, o) => s + getTotal(o), 0);

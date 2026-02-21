@@ -1,17 +1,15 @@
-
-
 import React from "react";
-import { Link, useLocation } from "react-router-dom"; //useLocation for smoothly navigate
-import { LayoutDashboard, ShoppingCart, Package, Users, LogIn, LogOut } from "lucide-react";  
+import { Link, useLocation } from "react-router-dom";
+import { LayoutDashboard, ShoppingCart, Package, Users, BarChart2, LogIn, LogOut } from "lucide-react";
 import { useAuth } from "../Components/AuthContext";
-import { useNavigate } from "react-router-dom"; //useNavigate → use when you call navigation manually inside a function.
-                                                // Navigate → use when you automatically redirect in JSX.
+import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/admindash" },
-  { name: "Orders", icon: ShoppingCart, path: "/admindash/orders" },
-  { name: "Products", icon: Package, path: "/admindash/products" },
-  { name: "Users", icon: Users, path: "/admindash/users" },
+  { name: "Orders",    icon: ShoppingCart,    path: "/admindash/orders" },
+  { name: "Products",  icon: Package,         path: "/admindash/products" },
+  { name: "Users",     icon: Users,           path: "/admindash/users" },
+  { name: "Analytics", icon: BarChart2,       path: "/admindash/analytics" }, 
 ];
 
 const SidebarItem = ({ icon: Icon, text, isActive, collapsed }) => (
@@ -20,8 +18,8 @@ const SidebarItem = ({ icon: Icon, text, isActive, collapsed }) => (
     ${isActive ? "bg-blue-700 shadow-md" : "hover:bg-blue-600/70"}`}
   >
     <Icon size={20} className="text-white" />
-    {!collapsed && <span className="font-medium text-white">{text}</span>}  
-  </div> // Only show the sidebar text when the sidebar is not collapsed; otherwise, hide it and show just the icons.
+    {!collapsed && <span className="font-medium text-white">{text}</span>}
+  </div>
 );
 
 export default function Sidebar({ collapsed }) {
@@ -31,10 +29,10 @@ export default function Sidebar({ collapsed }) {
 
   const handleAuthAction = () => {
     if (user) {
-      logout();           
-      navigate("/login");  // redirect after logout
+      logout();
+      navigate("/login");
     } else {
-      navigate("/login");  // go to login page if not logged in
+      navigate("/login");
     }
   };
 
@@ -54,7 +52,7 @@ export default function Sidebar({ collapsed }) {
         ))}
       </div>
 
-      {/* Auth Section - Replaced Footer Links */}
+      {/* Auth Section */}
       {!collapsed ? (
         <div className="mt-10">
           <button
@@ -73,17 +71,14 @@ export default function Sidebar({ collapsed }) {
               </>
             )}
           </button>
-          
-          {/* User info when logged in */}
+
           {user && (
             <div className="mt-3 text-center text-white text-sm">
               <p className="font-medium">{user.name || user.email}</p>
-             
             </div>
           )}
         </div>
       ) : (
-        // Collapsed version - just the icon
         <div className="mt-10 flex justify-center">
           <button
             onClick={handleAuthAction}

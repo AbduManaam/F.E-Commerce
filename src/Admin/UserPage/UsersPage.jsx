@@ -54,7 +54,7 @@ const UsersPage = () => {
   const handleSaveUser = async (u) => {
     try {
       const id = u.id || u.ID;
-      await apiService.client.put(`/admin/users/${id}`, { name: u.name || u.Name, email: u.email || u.Email });
+      await apiService.client.put(`/admin/users/${id}`, { name: u.name || u.Name,role: (u.role || u.Role || "USER").toUpperCase() });
       showMsg("success", "User updated!");
       setEditUser(null);
       fetchUsers();
@@ -244,10 +244,19 @@ const UsersPage = () => {
               <input value={editUser.name || editUser.Name || ""} onChange={e => setEditUser({ ...editUser, name: e.target.value })}
                 className="w-full border px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none" />
             </div>
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
               <input value={editUser.email || editUser.Email || ""} onChange={e => setEditUser({ ...editUser, email: e.target.value })}
                 className="w-full border px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none" />
+            </div> */}
+            <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+            <select value={editUser.role || editUser.Role || "USER"} 
+                onChange={e => setEditUser({ ...editUser, role: e.target.value })}
+                className="w-full border px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                <option value="USER">User</option>
+                <option value="ADMIN">Admin</option>
+            </select>
             </div>
           </div>
           <div className="flex gap-3 mt-5">

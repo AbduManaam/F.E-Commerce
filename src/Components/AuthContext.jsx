@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
      try{
         const cachedUser= JSON.parse(storedUser)
         setUser(cachedUser)
-        setIsAdmin(cachedUser.role === "admin")
+        setIsAdmin(cachedUser.role?.toUpperCase() === "ADMIN")
         setLoading(false)
      }catch (error){
         console.log("Failed to parse cached user",error);
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const profile = await authApi.getProfile();
         setUser(profile);
-        setIsAdmin(profile.role === "admin");
+        setIsAdmin(profile.role?.toUpperCase() === "ADMIN");
         localStorage.setItem("user",JSON.stringify(profile))
       } catch (error) {
         console.error("Profile refresh failed:", error);
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
 
     localStorage.setItem("user", JSON.stringify(result.user));
     setUser(result.user);
-    setIsAdmin(result.user.role === "admin");
+    setIsAdmin(result.user.role?.toUpperCase() === "ADMIN");
     return result;
   };
 

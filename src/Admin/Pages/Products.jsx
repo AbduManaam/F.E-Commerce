@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import apiService from "../../service/api.service";
 import { Plus, Edit, Trash2, Upload, X, Search, ImagePlus } from "lucide-react";
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -16,10 +16,13 @@ export default function AdminProducts() {
   const fileRef = useRef();
 
   const [form, setForm] = useState({
-    name: "", description: "", category: "", stock: "", half_price: "", full_price: "",
+    name: "", description: "", category_id: "", stock: "", half_price: "", full_price: "",
   });
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
 
   const showMsg = (type, text) => {
     setMessage({ type, text });
@@ -36,9 +39,16 @@ export default function AdminProducts() {
     finally { setLoading(false); }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const res = await apiService.client.get("/categories/");
+      setCategories(Array.isArray(res.data) ? res.data : []);
+    } catch { console.error("Failed to load categories"); }
+  };
+
   const openCreate = () => {
     setEditingProduct(null);
-    setForm({ name: "", description: "", category: "", stock: "", half_price: "", full_price: "" });
+    setForm({ name: "", description: "", category_id: "", stock: "", half_price: "", full_price: "" });
     setShowForm(true);
   };
 
@@ -50,7 +60,7 @@ export default function AdminProducts() {
     setForm({
       name: product.name || product.Name || "",
       description: product.description || product.Description || "",
-      category: product.category || product.Category || "",
+      category_id: String(product.category_id || product.CategoryID || ""),
       stock: String(product.stock ?? product.Stock ?? ""),
       half_price: half ? String(half.price || half.Price || "") : "",
       full_price: full ? String(full.price || full.Price || "") : "",
@@ -61,33 +71,45 @@ export default function AdminProducts() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) { showMsg("error", "Product name is required"); return; }
-    if (!form.category.trim()) { showMsg("error", "Category is required"); return; }
+    if (!form.category_id) { showMsg("error", "Category is required"); return; }
     if (!form.full_price) { showMsg("error", "Full price is required"); return; }
-
-    const payload = {
-      name: form.name,
-      description: form.description,
-      category: form.category,
-      stock: parseInt(form.stock) || 0,
-      prices: [
-        ...(form.half_price ? [{ size: "H", price: parseFloat(form.half_price) }] : []),
-        { size: "F", price: parseFloat(form.full_price) },
-      ],
-    };
 
     try {
       if (editingProduct) {
+        // ✅ Edit payload - matches UpdateProductRequest DTO
+        const editPayload = {
+          name: form.name,
+          description: form.description,
+          category: form.category_id,
+          stock: parseInt(form.stock) || 0,
+          prices: [
+            ...(form.half_price ? [{ size: "H", price: parseFloat(form.half_price) }] : []),
+            { size: "F", price: parseFloat(form.full_price) },
+          ],
+        };
         const id = editingProduct.id || editingProduct.ID;
-        await apiService.client.put(`/admin/products/${id}`, payload);
+        await apiService.client.put(`/admin/products/${id}`, editPayload);
         showMsg("success", "Product updated!");
       } else {
-        await apiService.client.post("/admin/products", payload);
+        // ✅ Create payload - matches CreateProductRequest DTO
+        const createPayload = {
+          title: form.name,                        // ← backend uses "title"
+          description: form.description,
+          category_id: parseInt(form.category_id), // ← number ID
+          stock: parseInt(form.stock) || 0,
+          price: {                                 // ← object {H, F} not array
+            F: parseFloat(form.full_price),
+            ...(form.half_price ? { H: parseFloat(form.half_price) } : {}),
+          },
+        };
+        await apiService.client.post("/admin/products", createPayload);
         showMsg("success", "Product created!");
       }
       setShowForm(false);
       fetchProducts();
     } catch (err) {
-      showMsg("error", err?.response?.data?.error || "Failed to save product");
+      const errMsg = err?.response?.data?.error?.message || err?.response?.data?.error || "Failed to save product";
+      showMsg("error", errMsg);
     }
   };
 
@@ -115,11 +137,11 @@ export default function AdminProducts() {
     } catch { showMsg("error", "Failed to upload image"); }
   };
 
-  const categories = [...new Set(products.map(p => p.category || p.Category).filter(Boolean))];
+const uniqueCategories = [...new Set(products.map(p => p.category_name || p.category || p.Category).filter(Boolean))];
 
   const filtered = products.filter(p => {
     const name = (p.name || p.Name || "").toLowerCase();
-    const cat = p.category || p.Category || "";
+    const cat = p.category_name || p.category || p.Category || "";
     return name.includes(search.toLowerCase()) && (categoryFilter ? cat === categoryFilter : true);
   });
 
@@ -136,7 +158,6 @@ export default function AdminProducts() {
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg">
-      {/* Message */}
       {message.text && (
         <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
           {message.text}
@@ -155,7 +176,7 @@ export default function AdminProducts() {
           <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
             className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none">
             <option value="">All Categories</option>
-            {categories.map((cat, i) => <option key={i} value={cat}>{cat}</option>)}
+            {uniqueCategories.map((cat, i) => <option key={i} value={cat}>{cat}</option>)}
           </select>
           <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
             <Plus className="w-4 h-4" /> Add Product
@@ -204,13 +225,13 @@ export default function AdminProducts() {
                         {product.stock ?? product.Stock ?? 0}
                       </span>
                     </td>
-                    <td className="p-3 text-gray-600">{product.category || product.Category || "—"}</td>
+                    <td className="p-3 text-gray-600">{product.category_name || product.category || product.Category || "—"}</td>
                     <td className="p-3">
                       <div className="flex items-center gap-2">
                         <button onClick={() => openEdit(product)} className="p-1.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100" title="Edit">
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button onClick={() => { setImageUpload({ productId: id, show: true }); }} className="p-1.5 rounded bg-green-50 text-green-600 hover:bg-green-100" title="Upload Image">
+                        <button onClick={() => setImageUpload({ productId: id, show: true })} className="p-1.5 rounded bg-green-50 text-green-600 hover:bg-green-100" title="Upload Image">
                           <ImagePlus className="w-4 h-4" />
                         </button>
                         <button onClick={() => setProductToDelete(product)} className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100" title="Delete">
@@ -239,35 +260,54 @@ export default function AdminProducts() {
                 <button onClick={() => setShowForm(false)}><X className="w-5 h-5 text-gray-500" /></button>
               </div>
               <form onSubmit={handleSave} className="space-y-4">
-                {[
-                  { label: "Product Name *", key: "name", placeholder: "e.g. Butter Chicken" },
-                  { label: "Category *", key: "category", placeholder: "e.g. Main Course" },
-                  { label: "Stock", key: "stock", type: "number", placeholder: "0" },
-                  { label: "Half Price ($)", key: "half_price", type: "number", placeholder: "Optional" },
-                  { label: "Full Price ($) *", key: "full_price", type: "number", placeholder: "e.g. 12.99" },
-                ].map(field => (
-                  <div key={field.key}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
-                    <input
-                      type={field.type || "text"}
-                      placeholder={field.placeholder}
-                      value={form[field.key]}
-                      onChange={e => setForm({ ...form, [field.key]: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      step={field.type === "number" ? "0.01" : undefined}
-                    />
-                  </div>
-                ))}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+                  <input type="text" placeholder="e.g. Butter Chicken"
+                    value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+
+                {/* ✅ Category Dropdown */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                  <select value={form.category_id} onChange={e => setForm({ ...form, category_id: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">Select a category</option>
+                    {categories.map(c => (
+                      <option key={c.ID || c.id} value={c.ID || c.id}>{c.Name || c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                  <input type="number" placeholder="0"
+                    value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Half Price ($) <span className="text-gray-400 text-xs">(Optional)</span></label>
+                  <input type="number" step="0.01" placeholder="Optional"
+                    value={form.half_price} onChange={e => setForm({ ...form, half_price: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Price ($) *</label>
+                  <input type="number" step="0.01" placeholder="e.g. 12.99"
+                    value={form.full_price} onChange={e => setForm({ ...form, full_price: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea
-                    placeholder="Product description..."
-                    value={form.description}
-                    onChange={e => setForm({ ...form, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                  />
+                  <textarea placeholder="Product description..."
+                    value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                    rows={3} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" />
                 </div>
+
                 <div className="flex gap-3 pt-2">
                   <button type="submit" className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-sm">
                     {editingProduct ? "Update Product" : "Create Product"}

@@ -168,7 +168,7 @@ const totalRevenue = orders
                 const paymentMethod = order.PaymentMethod || "N/A";
                 const total = order.FinalTotal || order.Total || 0;
                 const items = order.Items || [];
-                const canRefund = status === "cancelled" && paymentStatus === "paid" && paymentMethod !== "cod";
+                const canRefund =  (status === "cancelled" || status === "delivered") && paymentStatus === "paid" && paymentMethod !== "cod";
 
                 return (
                   <tr key={order.ID} className="border-b hover:bg-indigo-50/40 transition group">

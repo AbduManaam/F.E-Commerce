@@ -9,6 +9,7 @@ export default function DashboardHome() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalUsers,setTotalUsers] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,7 +20,12 @@ export default function DashboardHome() {
           apiService.client.get("/products/"),      // ✅ correct endpoint (no /admin/products)
         ]);
 
-        setUsers(Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.users || []);
+        setUsers(
+        Array.isArray(usersRes.data) ? usersRes.data :
+        Array.isArray(usersRes.data?.data) ? usersRes.data.data :
+        
+        usersRes.data?.users || []);
+        setTotalUsers(usersRes.data?.total || 0)
         setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || []);
         setProducts(Array.isArray(productsRes.data) ? productsRes.data : productsRes.data?.products || []);
       } catch (err) {
@@ -40,7 +46,7 @@ export default function DashboardHome() {
   .reduce((sum, o) => sum + (o.FinalTotal || o.Total || 0), 0);
 
     return [
-      { title: "Total Users", value: users.length.toLocaleString() },
+      { title: "Total Users", value: totalUsers.toLocaleString() },
       { title: "Total Orders", value: orders.length.toLocaleString() },
       { title: "Total Products", value: products.length.toLocaleString() },
       { title: "Total Revenue", value: `$${totalRevenue.toFixed(2)}` },
@@ -60,12 +66,12 @@ export default function DashboardHome() {
     }
 
     orders.forEach((order) => {
-      const orderDate = new Date(order.created_at || order.createdAt || order.date);
+      const orderDate = new Date(order.CreatedAt || order.createdAt || order.date);
       if (isNaN(orderDate.getTime())) return;
       const dateStr = orderDate.toISOString().split("T")[0];
       const dayData = last7Days.find((day) => day.fullDate === dateStr);
       if (dayData) {
-        dayData.revenue += Number(order.final_total || order.total_amount || order.amount) || 0;
+        dayData.revenue += Number(order.FinalTotal || order.Total || order.total_amount || order.amount) || 0;
       }
     });
 
@@ -172,7 +178,7 @@ export default function DashboardHome() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span>Total Users</span>
-              <span className="font-semibold text-blue-600">{users.length}</span>
+              <span className="font-semibold text-blue-600">{totalUsers}</span>
             </div>
             <div className="flex justify-between items-center">
               <span>Blocked Users</span>

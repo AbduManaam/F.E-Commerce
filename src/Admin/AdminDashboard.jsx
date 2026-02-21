@@ -11,6 +11,7 @@ import UserView from "./UserPage/UserView";
 import UserEdit from "./UserPage/UserEdit";    
 import OrdersPage from "./Pages/Orders/OrdersPage"; 
 import Sidebar from "./Sidebar";
+import AnalyticsPage from "./Pages/Analyticspage";
 
 
 const COLLAPSED_W = 80;
@@ -62,6 +63,7 @@ export default function AdminDashboard() {
             <Route path="users" element={<UsersPage />} />
             <Route path="users/create" element={<UserCreate />} />
             <Route path="users/:id" element={<UserView />} />
+            <Route path="analytics" element={<AnalyticsPage />} /> 
             <Route path="users/edit/:id" element={<UserEdit />} />
             
             {/* Catch all route for admin - redirect to admin home */}

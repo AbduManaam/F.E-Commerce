@@ -23,12 +23,15 @@ import AdminProtectedRoute from "./Admin/Router/AdminProtectedRoute ";
 import Login from "./Components/Login";
 import ForgotPassword from "./Components/ForgotPassword";
 import AdminLogin from "./Admin/Pages/Admin_Login";
+import AnalyticsPage from "./Admin/Pages/Analyticspage";
 
 const AppContent = () => {
   const location = useLocation();
   const isAdminPage =
     location.pathname.startsWith("/admin") ||
-    location.pathname.startsWith("/admindash");
+    location.pathname.startsWith("/admindash") ||
+    location.pathname === "/login" ||
+    location.pathname === "/forgot-password";
 
   return (
     <>
@@ -59,7 +62,6 @@ const AppContent = () => {
           <Route path="/admin/users/create" element={<UserCreate />} />
           <Route path="/admin/users/:id" element={<UserView />} />
           <Route path="/admin/users/edit/:id" element={<UserEdit />} />
-
         </Route>
 
         {/* 404 PAGE */}

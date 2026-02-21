@@ -47,13 +47,8 @@ const OrdersPage = () => {
   const updateOrderStatus = async (orderId, newStatus) => {
   try {
     await apiService.client.put(`/admin/orders/${orderId}/status`, { status: newStatus });
-    setOrders(prev => prev.map(o => o.ID === orderId ? { 
-      ...o, 
-      Status: newStatus,
-      
-      // auto mark as paid when delivered
-      PaymentStatus: newStatus === "delivered" ? "paid" : o.PaymentStatus
-    } : o));
+    // Refetch orders so PaymentStatus reflects backend rules (COD cancelled → cancelled, etc.)
+    await fetchOrders();
     showMsg("success", "Order status updated!");
   } catch { showMsg("error", "Failed to update status"); }
 };
@@ -193,7 +188,8 @@ const totalRevenue = orders
                       <p className="text-xs capitalize text-gray-600">{paymentMethod}</p>
                       <p className={`text-xs font-medium capitalize mt-1 ${
                         paymentStatus === "paid" ? "text-green-600" :
-                        paymentStatus === "refunded" ? "text-purple-600" : "text-yellow-600"
+                        paymentStatus === "refunded" ? "text-purple-600" :
+                        paymentStatus === "cancelled" ? "text-red-600" : "text-yellow-600"
                       }`}>{paymentStatus}</p>
                     </td>
 

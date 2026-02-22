@@ -9,7 +9,7 @@ const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [cartCount, setCartCount] = useState(0);
-  const { user } = useAuth();
+  const { user, isAdminViewingUserModule } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -79,6 +79,10 @@ const loadCart = async () => {
       navigate("/login");
       return;
     }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot add items to cart.");
+      return;
+    }
 
     const existing = cart.find((item) => item.id === product.id && item.size === size);
 
@@ -105,6 +109,10 @@ const loadCart = async () => {
 const removeFromCart = async (id, size) => {
   if (!user) {
     navigate("/login");
+    return;
+  }
+  if (isAdminViewingUserModule) {
+    toast.info("View-only mode: Admins cannot modify cart.");
     return;
   }
 
@@ -135,6 +143,10 @@ const removeFromCart = async (id, size) => {
  const updateQty = async (id, size, qty) => {
   if (!user) {
     navigate("/login");
+    return;
+  }
+  if (isAdminViewingUserModule) {
+    toast.info("View-only mode: Admins cannot modify cart.");
     return;
   }
 
@@ -183,6 +195,10 @@ const resetCart = async () => {
   const clearCart = async () => {
     if (!user) {
       navigate("/login");
+      return;
+    }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot modify cart.");
       return;
     }
 

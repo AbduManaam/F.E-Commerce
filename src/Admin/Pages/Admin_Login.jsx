@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../Components/AuthContext"; 
 import { Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 
@@ -9,7 +9,7 @@ const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [globalError, setGlobalError] = useState("");
-  const { login, user, isAdmin, loading } = useAuth();
+  const { login, logout, user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
   // If already logged in as admin, go to admin panel
@@ -36,28 +36,24 @@ const AdminLogin = () => {
 
     try {
       const result = await login(email, password);
-      console.log("Full result",result);
-      console.log("user role result",result?.user);
-      
-
       if (!result?.success) {
-        setGlobalError(result?.message || "Invalid credentials");
+        setGlobalError(result?.message || "Wrong password or email address");
+        setPassword("");
         return;
       }
 
-      // Check if the logged in user is actually admin
       const role = result?.user?.role || result?.user?.Role;
-      console.log("Role",role);
-      
       if (role?.toUpperCase() !== "ADMIN") {
         setGlobalError("Access denied. This login is for admins only.");
-        // logout to clear the token since they're not admin
+        await logout();
+        setPassword("");
         return;
       }
 
       navigate("/admindash", { replace: true });
     } catch {
-      setGlobalError("Invalid credentials");
+      setGlobalError("Wrong password or email address");
+      setPassword("");
     }
   };
 
@@ -144,6 +140,14 @@ const AdminLogin = () => {
 
           <p className="text-center text-blue-300/60 text-xs mt-6">
             🔒 Restricted area — authorized personnel only
+          </p>
+          <p className="text-center mt-3">
+            <Link
+              to="/login"
+              className="text-sm text-blue-300 hover:text-white transition-colors"
+            >
+              View user module? Use User Login
+            </Link>
           </p>
         </div>
       </div>

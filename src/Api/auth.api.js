@@ -15,13 +15,30 @@ const authApi = {
 
       return { success: true, user:fullUser };
     } catch (error) {
+      const status = error.response?.status;
+      const data = error.response?.data;
+      const code = data?.error?.code || "";
+      // Preserve actionable messages (e.g. email not verified, account blocked)
+      const preserveCodes = ["EMAIL_NOT_VERIFIED", "USER_BLOCKED"];
+      if (preserveCodes.includes(code) && (data?.error?.message || data?.message)) {
+        return {
+          success: false,
+          message: data.error?.message || data.message,
+        };
+      }
+      // Credential mismatch: use generic message (security best practice)
+      const credentialErrorMsg = "Wrong password or email address";
+      if (status === 401 || code === "INVALID_LOGIN" || !data) {
+        return { success: false, message: credentialErrorMsg };
+      }
+      const rawMsg = typeof data === "string"
+        ? data
+        : data?.error?.message || data?.message || data?.msg
+          || (data?.errors?.[0] && (typeof data.errors[0] === "string" ? data.errors[0] : data.errors[0]?.message || data.errors[0]?.msg));
+      const isCredentialError = rawMsg && /invalid|wrong|incorrect|failed|unauthorized/i.test(String(rawMsg));
       return {
         success: false,
-        message:
-          error.response?.data?.error?.message ||
-          error.response?.data?.message ||
-          error.message ||       
-         "Invalid email or password",
+        message: isCredentialError ? credentialErrorMsg : (rawMsg || credentialErrorMsg),
       };
     }
   },

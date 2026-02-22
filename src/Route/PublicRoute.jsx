@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../Components/AuthContext";
 
 const PublicRoute = ({ children }) => {
-  const { user, isAdmin, isLoading } = useAuth();
+  const { user, isAdmin, isAdminViewingUserModule, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -17,7 +17,8 @@ const PublicRoute = ({ children }) => {
 
   // If user is already logged in, redirect them to appropriate dashboard
   if (user) {
-    return <Navigate to={isAdmin ? "/admindash" : "/"} replace />;
+    const to = isAdmin && isAdminViewingUserModule ? "/" : isAdmin ? "/admindash" : "/";
+    return <Navigate to={to} replace />;
   }
 
   return children;

@@ -56,16 +56,22 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  const { login, signup, verifyOTP, user, isAdmin, loading } = useAuth()
+  const { login, signup, verifyOTP, user, isAdmin, isAdminViewingUserModule, loading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from?.pathname || "/"
 
   useEffect(() => {
     if (user) {
-      navigate(isAdmin ? "/admindash" : from, { replace: true })
+      if (isAdmin && isAdminViewingUserModule) {
+        navigate("/", { replace: true })
+      } else if (isAdmin) {
+        navigate("/admindash", { replace: true })
+      } else {
+        navigate(from, { replace: true })
+      }
     }
-  }, [user, isAdmin, navigate, from])
+  }, [user, isAdmin, isAdminViewingUserModule, navigate, from])
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -109,12 +115,15 @@ const Login = () => {
     }
 
     try {
-      const result = await login(email, password)
+      const result = await login(email, password, { source: "user" })
       if (!result?.success) {
-        setGlobalError(result?.message || "Invalid email or password")
+        setGlobalError(result?.message || "Wrong password or email address")
+        setFormData(prev => ({ ...prev, password: "" }))
+        return
       }
     } catch (err) {
-      setGlobalError("Invalid email or password")
+      setGlobalError("Wrong password or email address")
+      setFormData(prev => ({ ...prev, password: "" }))
     }
   }
 
@@ -362,14 +371,20 @@ const Login = () => {
             </button>
           </div>
 
-          {/* Forgot Password */}
+          {/* Forgot Password & Admin Login */}
           {!isSignup && (
-            <div className="text-center mt-2">
+            <div className="text-center mt-2 space-y-1">
               <Link
                 to="/forgot-password"
-                className="text-sm text-gray-500 hover:text-amber-600 transition-colors"
+                className="block text-sm text-gray-500 hover:text-amber-600 transition-colors"
               >
                 Forgot password?
+              </Link>
+              <Link
+                to="/admin-login"
+                className="block text-sm text-gray-500 hover:text-amber-600 transition-colors"
+              >
+                Admin? Login here
               </Link>
             </div>
           )}

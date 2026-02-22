@@ -8,7 +8,7 @@ const OrderContext = createContext();
 export const OrderProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, isAdminViewingUserModule } = useAuth();
 
   // Load orders when user logs in
   useEffect(() => {
@@ -43,6 +43,10 @@ export const OrderProvider = ({ children }) => {
       toast.error("Please login to place order");
       return { success: false };
     }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot place orders.");
+      return { success: false };
+    }
 
     try {
       const response = await apiService.createOrderFromCart(addressId, paymentMethod);
@@ -65,6 +69,10 @@ export const OrderProvider = ({ children }) => {
   const createDirectOrder = async (addressId, items, paymentMethod = 'cod') => {
     if (!user) {
       toast.error("Please login to place order");
+      return { success: false };
+    }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot place orders.");
       return { success: false };
     }
 
@@ -91,6 +99,10 @@ export const OrderProvider = ({ children }) => {
       toast.error("Please login");
       return;
     }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot modify orders.");
+      return;
+    }
 
     try {
       const response = await apiService.cancelOrder(orderId);
@@ -111,6 +123,10 @@ export const OrderProvider = ({ children }) => {
   const cancelOrderItem = async (orderId, itemId, reason = '') => {
     if (!user) {
       toast.error("Please login");
+      return;
+    }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot modify orders.");
       return;
     }
 
@@ -135,6 +151,10 @@ export const OrderProvider = ({ children }) => {
       toast.error("Please login");
       return { success: false };
     }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot initiate payments.");
+      return { success: false };
+    }
 
     try {
       const response = await apiService.createPaymentIntent(orderId, method);
@@ -156,6 +176,10 @@ export const OrderProvider = ({ children }) => {
 
   // Confirm payment
   const confirmPayment = async (paymentId, status = 'completed') => {
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot confirm payments.");
+      return { success: false };
+    }
     try {
       const response = await apiService.confirmPayment(paymentId, status);
       

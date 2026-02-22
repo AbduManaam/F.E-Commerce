@@ -20,7 +20,7 @@ import { assets } from "../assets/data";
 const Header = () => {
   const [menuOpened, setMenuOpened] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin, isAdminViewingUserModule, setIsAdminViewingUserModule } = useAuth();
   const { cartCount } = useCart();
   const { wishlist } = useWishlist();
   const navigate = useNavigate();
@@ -31,7 +31,22 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
+    <>
+      {isAdminViewingUserModule && (
+        <div className="fixed top-0 left-0 right-0 h-10 bg-amber-500 text-white px-4 text-center text-sm z-[60] flex items-center justify-center gap-4">
+          <span className="font-medium">View-only mode — You are browsing as Admin. Transactional actions are disabled.</span>
+          <button
+            onClick={() => {
+              setIsAdminViewingUserModule(false);
+              navigate("/admindash");
+            }}
+            className="bg-white text-amber-600 px-3 py-1 rounded-lg font-semibold hover:bg-amber-50 transition"
+          >
+            Back to Admin
+          </button>
+        </div>
+      )}
+    <header className={`fixed left-0 right-0 bg-white shadow-md z-50 ${isAdminViewingUserModule ? "top-10" : "top-0"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -160,6 +175,7 @@ const Header = () => {
       {/* Mobile Menu */}
       <MobileMenu isOpen={menuOpened} onClose={() => setMenuOpened(false)} />
     </header>
+    </>
   );
 };
 

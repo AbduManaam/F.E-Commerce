@@ -2,7 +2,7 @@ import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { useAuth } from "../Components/AuthContext"; 
 
 const UserProtectedRoute = () => {
-  const { user, isAdmin, isLoading } = useAuth();
+  const { user, isAdmin, isAdminViewingUserModule, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -21,8 +21,8 @@ const UserProtectedRoute = () => {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Admin trying to access user side → redirect to admin dashboard
-  if (isAdmin) {
+  // Admin accessing user side without read-only mode → redirect to admin dashboard
+  if (isAdmin && !isAdminViewingUserModule) {
     return <Navigate to="/admindash" replace />;
   }
 

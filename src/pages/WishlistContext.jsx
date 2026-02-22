@@ -9,7 +9,7 @@ const WishlistContext = createContext();
 
 export const WishlistProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
-  const { user } = useAuth();
+  const { user, isAdminViewingUserModule } = useAuth();
   const navigate = useNavigate();
   const { addToCart, loadCart } = useCart(); // ✅ added loadCart
 
@@ -63,6 +63,10 @@ export const WishlistProvider = ({ children }) => {
       navigate("/login");
       return;
     }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot add to wishlist.");
+      return;
+    }
 
     const existing = wishlist.find((item) => Number(item.id) === Number(product.id));
     if (existing) {
@@ -98,6 +102,10 @@ export const WishlistProvider = ({ children }) => {
       navigate("/login");
       return;
     }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot modify wishlist.");
+      return;
+    }
     try {
       const response = await apiService.removeFromWishlist(id);
       if (response.success) {
@@ -117,6 +125,10 @@ export const WishlistProvider = ({ children }) => {
       navigate("/login");
       return;
     }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot modify wishlist.");
+      return;
+    }
     try {
       const promises = wishlist.map(item => apiService.removeFromWishlist(item.id));
       await Promise.all(promises);
@@ -133,6 +145,10 @@ export const WishlistProvider = ({ children }) => {
     if (!user) {
       toast.info("Please login to move items to cart");
       navigate("/login");
+      return;
+    }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot add to cart.");
       return;
     }
 

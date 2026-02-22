@@ -7,9 +7,9 @@ import { useAuth } from "../Components/AuthContext";
 import apiService from "../service/api.service";
 
 const Cart = () => {
-  const { cart, updateQty, removeFromCart, clearCart,resetCart  } = useCart();
+  const { cart, updateQty, removeFromCart, clearCart, resetCart } = useCart();
   const { createOrderFromCart } = useOrders();
-  const { user } = useAuth();
+  const { user, isAdminViewingUserModule } = useAuth();
   const navigate = useNavigate();
   
   const [paymentMethod, setPaymentMethod] = useState("cod");
@@ -297,14 +297,14 @@ const Cart = () => {
 
         <button
           onClick={handleCheckout}
-          disabled={isProcessing || cart.length === 0 || !selectedAddress}
+          disabled={isProcessing || cart.length === 0 || !selectedAddress || isAdminViewingUserModule}
           className={`w-full py-2 md:py-3 lg:py-4 text-sm md:text-base lg:text-lg rounded mt-3 ${
-            isProcessing || cart.length === 0 || !selectedAddress
+            isProcessing || cart.length === 0 || !selectedAddress || isAdminViewingUserModule
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-red-500 hover:bg-red-600 text-white"
           }`}
         >
-          {isProcessing ? "Processing..." : "Proceed to Order"}
+          {isAdminViewingUserModule ? "View-only mode" : isProcessing ? "Processing..." : "Proceed to Order"}
         </button>
 
         {/* Stock Warning */}

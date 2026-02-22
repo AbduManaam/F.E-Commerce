@@ -1,4 +1,5 @@
 import { Routes, Route, useLocation } from "react-router-dom";
+import { useAuth } from "./Components/AuthContext";
 import Menu from "./pages/Menu";
 import Home from "./pages/Home";
 import Contact from "./pages/Contact";
@@ -27,16 +28,19 @@ import AnalyticsPage from "./Admin/Pages/Analyticspage";
 
 const AppContent = () => {
   const location = useLocation();
+  const { isAdminViewingUserModule } = useAuth();
   const isAdminPage =
     location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/admindash") ||
     location.pathname === "/login" ||
+    location.pathname === "/admin-login" ||
     location.pathname === "/forgot-password";
 
   return (
     <>
       {!isAdminPage && <Header />}
 
+      <div className={isAdminViewingUserModule ? "pt-2" : ""}>
       <Routes>
         {/* PUBLIC ROUTES */}
         
@@ -77,6 +81,7 @@ const AppContent = () => {
           }
         />
       </Routes>
+      </div>
 
       {!isAdminPage && <Footer />}
       <ToastContainer

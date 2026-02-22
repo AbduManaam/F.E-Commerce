@@ -122,7 +122,6 @@ const Cart = () => {
       console.log(" Order result:", result);
 
     if (result.success) {
-      toast.success("🎉 Order placed successfully!");
       resetCart();
       navigate("/myorders");
     } else {

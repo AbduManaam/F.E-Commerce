@@ -486,7 +486,7 @@ async getOrders() {
 // Get single order details
 async getOrderById(orderId) {
   try {
-    const res = await this.client.get(`/orders/${orderId}`);
+    const res = await this.client.get(`/api/orders/${orderId}`);
     return { success: true, data: res.data };
   } catch (err) {
     return { success: false, ...this.normalizeError(err) };
@@ -566,11 +566,27 @@ async getAddresses() {
 
 async createAddress(addressData) {
   try {
-    const res = await this.client.post('/api/addresses', addressData);
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
+  if (editingAddress) {
+    await apiService.client.put(`/api/addresses/${editingAddress.ID || editingAddress.id}`, addressForm);
+    showMessage("success", "Address updated!");
+  } else {
+    const result = await apiService.createAddress(addressForm);
+    if (!result.success) {
+      showMessage("error", result.message || "Failed to save address");
+      return;
+    }
+    showMessage("success", "Address added!");
   }
+  resetAddressForm();
+  fetchAddresses();
+} catch (err) {
+  const msg =
+    err?.response?.data?.error?.message ||
+    err?.response?.data?.error ||
+    err?.message ||
+    "Failed to save address";
+  showMessage("error", msg);
+}
 }
 
 

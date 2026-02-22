@@ -24,7 +24,7 @@ const Items = ({ product, viewMode = "grid" }) => {
 
   const handleWishlistToggle = () => {
 
-     console.log("Product being added:", product); // ✅ Add this
+     console.log("Product being added:", product); 
   console.log("Product ID:", product.id);
 
     if (isInWishlist) removeFromWishlist(product.id);
@@ -55,6 +55,9 @@ const Items = ({ product, viewMode = "grid" }) => {
   };
 
   const currentPrice = getPrice();
+
+
+
 
   // LIST VIEW
   if (viewMode === "list") {

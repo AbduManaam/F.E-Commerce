@@ -1,6 +1,6 @@
 import React from "react";
 import { useWishlist } from "./WishlistContext";
-import Items from "../Components/items";
+import Items from "../Components/Items";
 // import Items from "../Components/items"
 
 const Wishlist = () => {
@@ -20,14 +20,6 @@ const Wishlist = () => {
               <div key={item.id} className="relative">
                 {/* Card (same size as Menu) */}
                 <Items product={item} />
-
-                {/*  Remove button (top-left corner) */}
-                <button
-                  onClick={() => removeFromWishlist(item.id)}
-                  className="absolute top-3 left-3 bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center shadow hover:bg-red-600 transition"
-                >
-                  ✕
-                </button>
               </div>
             ))}
           </div>

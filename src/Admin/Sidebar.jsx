@@ -1,15 +1,16 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, Users, BarChart2, LogIn, LogOut } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Users, BarChart2, LogIn, LogOut, Store } from "lucide-react";
 import { useAuth } from "../Components/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/admindash" },
-  { name: "Orders",    icon: ShoppingCart,    path: "/admindash/orders" },
-  { name: "Products",  icon: Package,         path: "/admindash/products" },
-  { name: "Users",     icon: Users,           path: "/admindash/users" },
-  { name: "Analytics", icon: BarChart2,       path: "/admindash/analytics" }, 
+  { name: "View User Module", icon: Store, path: "__VIEW_USER__" },
+  { name: "Orders", icon: ShoppingCart, path: "/admindash/orders" },
+  { name: "Products", icon: Package, path: "/admindash/products" },
+  { name: "Users", icon: Users, path: "/admindash/users" },
+  { name: "Analytics", icon: BarChart2, path: "/admindash/analytics" },
 ];
 
 const SidebarItem = ({ icon: Icon, text, isActive, collapsed }) => (
@@ -24,8 +25,13 @@ const SidebarItem = ({ icon: Icon, text, isActive, collapsed }) => (
 
 export default function Sidebar({ collapsed }) {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, setIsAdminViewingUserModule } = useAuth();
   const navigate = useNavigate();
+
+  const handleViewUserModule = () => {
+    setIsAdminViewingUserModule(true);
+    navigate("/");
+  };
 
   const handleAuthAction = () => {
     if (user) {
@@ -40,16 +46,31 @@ export default function Sidebar({ collapsed }) {
     <div className="flex flex-col justify-between h-full">
       {/* Navigation Items */}
       <div className="flex flex-col gap-2">
-        {navItems.map((item, idx) => (
-          <Link key={idx} to={item.path}>
-            <SidebarItem
-              icon={item.icon}
-              text={item.name}
-              isActive={location.pathname === item.path}
-              collapsed={collapsed}
-            />
-          </Link>
-        ))}
+        {navItems.map((item, idx) =>
+          item.path === "__VIEW_USER__" ? (
+            <button
+              key={idx}
+              onClick={handleViewUserModule}
+              className="w-full text-left bg-transparent border-0 p-0 cursor-pointer"
+            >
+              <SidebarItem
+                icon={item.icon}
+                text={item.name}
+                isActive={false}
+                collapsed={collapsed}
+              />
+            </button>
+          ) : (
+            <Link key={idx} to={item.path}>
+              <SidebarItem
+                icon={item.icon}
+                text={item.name}
+                isActive={location.pathname === item.path}
+                collapsed={collapsed}
+              />
+            </Link>
+          )
+        )}
       </div>
 
       {/* Auth Section */}

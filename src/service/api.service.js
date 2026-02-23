@@ -97,9 +97,9 @@ class ApiService {
               return this.client(originalRequest);
             }
           } catch (refreshError) {
-            // Token refresh failed - logout user
+            // Token refresh failed - let AuthContext handle redirect
             this.logout();
-            window.location.href = '/login?session=expired';
+            window.dispatchEvent(new CustomEvent("auth:session-expired"));
           }
         }
 
@@ -128,7 +128,7 @@ class ApiService {
       return {
         status: error.response.status,
         code: error.response.data?.code || 'UNKNOWN_ERROR',
-        message:error.response.data?.error?.message || error.response.data?.message || error.response.data?.error || 'An error occurred',
+        message: error.response.data?.error?.message || error.response.data?.message || error.response.data?.error || 'An error occurred',
         details: error.response.data,
       };
     } else if (error.request) {
@@ -373,7 +373,7 @@ class ApiService {
 
   async addToCart(productId, quantity = 1) {
     try {
-      const res = await this.client.post("/api/cart", { product_id: Number( productId), quantity });
+      const res = await this.client.post("/api/cart", { product_id: Number(productId), quantity });
       return { success: true, data: res.data };
     } catch (err) {
       return { success: false, ...this.normalizeError(err) };
@@ -441,153 +441,153 @@ class ApiService {
 
   // ==================== ORDERS ====================
 
-// Create order from cart
-async createOrderFromCart(addressId, paymentMethod = 'cod') {
-  try {
-    const res = await this.client.post('/api/orders', {
-      address_id: Number(addressId),
-      payment_method: paymentMethod,
-      order_type: 'cart'
-    });
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
-  }
-}
-
-// Create direct order (buy now)
-async createDirectOrder(addressId, items, paymentMethod = 'cod') {
-  try {
-    const res = await this.client.post('/api/orders', {
-      address_id: Number(addressId),
-      payment_method: paymentMethod,
-      order_type: 'direct',
-      items: items.map(item => ({
-        product_id: Number(item.product_id),
-        quantity: Number(item.quantity)
-      }))
-    });
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
-  }
-}
-
-// Get all user orders
-async getOrders() {
-  try {
-    const res = await this.client.get('/api/orders');
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
-  }
-}
-
-// Get single order details
-async getOrderById(orderId) {
-  try {
-    const res = await this.client.get(`/api/orders/${orderId}`);
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
-  }
-}
-
-// Cancel order
-async cancelOrder(orderId) {
-  try {
-    const res = await this.client.put(`/api/orders/${orderId}/cancel`);
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
-  }
-}
-
-// Cancel order item
-async cancelOrderItem(orderId, itemId, reason = '') {
-  try {
-    const res = await this.client.put(`/api/orders/${orderId}/items/${itemId}/cancel`, {
-      reason
-    });
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
-  }
-}
-
-// Get order items
-async getOrderItems(orderId) {
-  try {
-    const res = await this.client.get(`/api/orders/${orderId}/items`);
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
-  }
-}
-
-// ==================== PAYMENT ====================
-
-// Create payment intent (Razorpay/Stripe)
-async createPaymentIntent(orderId, method = 'razorpay') {
-  try {
-    const res = await this.client.post('/api/payments/intent', {
-      order_id: Number(orderId),
-      method: method
-    });
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
-  }
-}
-
-// Confirm payment after successful payment gateway response
-async confirmPayment(paymentId, status = 'completed') {
-  try {
-    const res = await this.client.post('/api/payments/confirm', {
-      payment_id: paymentId,
-      status: status
-    });
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
-  }
-}
-
-// ==================== ADDRESSES ====================
-
-async getAddresses() {
-  try {
-    const res = await this.client.get('/api/addresses');
-    return { success: true, data: res.data };
-  } catch (err) {
-    return { success: false, ...this.normalizeError(err) };
-  }
-}
-
-async createAddress(addressData) {
-  try {
-  if (editingAddress) {
-    await apiService.client.put(`/api/addresses/${editingAddress.ID || editingAddress.id}`, addressForm);
-    showMessage("success", "Address updated!");
-  } else {
-    const result = await apiService.createAddress(addressForm);
-    if (!result.success) {
-      showMessage("error", result.message || "Failed to save address");
-      return;
+  // Create order from cart
+  async createOrderFromCart(addressId, paymentMethod = 'cod') {
+    try {
+      const res = await this.client.post('/api/orders', {
+        address_id: Number(addressId),
+        payment_method: paymentMethod,
+        order_type: 'cart'
+      });
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
     }
-    showMessage("success", "Address added!");
   }
-  resetAddressForm();
-  fetchAddresses();
-} catch (err) {
-  const msg =
-    err?.response?.data?.error?.message ||
-    err?.response?.data?.error ||
-    err?.message ||
-    "Failed to save address";
-  showMessage("error", msg);
-}
-}
+
+  // Create direct order (buy now)
+  async createDirectOrder(addressId, items, paymentMethod = 'cod') {
+    try {
+      const res = await this.client.post('/api/orders', {
+        address_id: Number(addressId),
+        payment_method: paymentMethod,
+        order_type: 'direct',
+        items: items.map(item => ({
+          product_id: Number(item.product_id),
+          quantity: Number(item.quantity)
+        }))
+      });
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
+  }
+
+  // Get all user orders
+  async getOrders() {
+    try {
+      const res = await this.client.get('/api/orders');
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
+  }
+
+  // Get single order details
+  async getOrderById(orderId) {
+    try {
+      const res = await this.client.get(`/api/orders/${orderId}`);
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
+  }
+
+  // Cancel order
+  async cancelOrder(orderId) {
+    try {
+      const res = await this.client.put(`/api/orders/${orderId}/cancel`);
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
+  }
+
+  // Cancel order item
+  async cancelOrderItem(orderId, itemId, reason = '') {
+    try {
+      const res = await this.client.put(`/api/orders/${orderId}/items/${itemId}/cancel`, {
+        reason
+      });
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
+  }
+
+  // Get order items
+  async getOrderItems(orderId) {
+    try {
+      const res = await this.client.get(`/api/orders/${orderId}/items`);
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
+  }
+
+  // ==================== PAYMENT ====================
+
+  // Create payment intent (Razorpay/Stripe)
+  async createPaymentIntent(orderId, method = 'razorpay') {
+    try {
+      const res = await this.client.post('/api/payments/intent', {
+        order_id: Number(orderId),
+        method: method
+      });
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
+  }
+
+  // Confirm payment after successful payment gateway response
+  async confirmPayment(paymentId, status = 'completed') {
+    try {
+      const res = await this.client.post('/api/payments/confirm', {
+        payment_id: paymentId,
+        status: status
+      });
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
+  }
+
+  // ==================== ADDRESSES ====================
+
+  async getAddresses() {
+    try {
+      const res = await this.client.get('/api/addresses');
+      return { success: true, data: res.data };
+    } catch (err) {
+      return { success: false, ...this.normalizeError(err) };
+    }
+  }
+
+  async createAddress(addressData) {
+    try {
+      if (editingAddress) {
+        await apiService.client.put(`/api/addresses/${editingAddress.ID || editingAddress.id}`, addressForm);
+        showMessage("success", "Address updated!");
+      } else {
+        const result = await apiService.createAddress(addressForm);
+        if (!result.success) {
+          showMessage("error", result.message || "Failed to save address");
+          return;
+        }
+        showMessage("success", "Address added!");
+      }
+      resetAddressForm();
+      fetchAddresses();
+    } catch (err) {
+      const msg =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to save address";
+      showMessage("error", msg);
+    }
+  }
 
 
 }

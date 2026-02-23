@@ -47,30 +47,30 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-     try{
-        const cachedUser= JSON.parse(storedUser)
+      try {
+        const cachedUser = JSON.parse(storedUser)
         setUser(cachedUser)
         setIsAdmin(cachedUser.role?.toUpperCase() === "ADMIN")
-     }catch (error){
-        console.log("Failed to parse cached user",error);
+      } catch (error) {
+        console.log("Failed to parse cached user", error);
         setUser(null)
         setIsAdmin(false)
         setLoading(false)
         setInitialLoadDone(true)
         return
-     }
+      }
 
       try {
         const profile = await authApi.getProfile();
         setUser(profile);
         setIsAdmin(profile.role?.toUpperCase() === "ADMIN");
-        localStorage.setItem("user",JSON.stringify(profile))
+        localStorage.setItem("user", JSON.stringify(profile))
       } catch (error) {
         console.error("Profile refresh failed:", error);
         if (!localStorage.getItem("access_token")) {
-           setUser(null);
-           setIsAdmin(false);
-           setIsAdminViewingUserModuleState(false);
+          setUser(null);
+          setIsAdmin(false);
+          setIsAdminViewingUserModuleState(false);
         }
       } finally {
         setLoading(false);
@@ -79,6 +79,19 @@ export const AuthProvider = ({ children }) => {
     };
 
     loadUser();
+  }, []);
+
+  // Listen for session-expired events from API interceptors
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("user");
+      setUser(null);
+      setIsAdmin(false);
+      setIsAdminViewingUserModuleState(false);
+    };
+    window.addEventListener("auth:session-expired", handleSessionExpired);
+    return () => window.removeEventListener("auth:session-expired", handleSessionExpired);
   }, []);
 
   const login = async (email, password, options = {}) => {
@@ -118,18 +131,18 @@ export const AuthProvider = ({ children }) => {
     authApi.resendVerification(email);
 
 
-const logout = async () => {
-  await authApi.logout();
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-  localStorage.removeItem("user");
-  try {
-    sessionStorage.removeItem(ADMIN_VIEWING_USER_KEY);
-  } catch {}
-  setUser(null);
-  setIsAdmin(false);
-  setIsAdminViewingUserModuleState(false);
-};
+  const logout = async () => {
+    await authApi.logout();
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
+    try {
+      sessionStorage.removeItem(ADMIN_VIEWING_USER_KEY);
+    } catch { }
+    setUser(null);
+    setIsAdmin(false);
+    setIsAdminViewingUserModuleState(false);
+  };
 
   return (
     <AuthContext.Provider

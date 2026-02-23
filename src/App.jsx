@@ -41,46 +41,47 @@ const AppContent = () => {
       {!isAdminPage && <Header />}
 
       <div className={isAdminViewingUserModule ? "pt-2" : ""}>
-      <Routes>
-        {/* PUBLIC ROUTES */}
-        
-        <Route path="/login"element={<PublicRoute> <Login /> </PublicRoute>}/>
-        <Route path="/forgot-password"element={<PublicRoute> <ForgotPassword /> </PublicRoute>}/>
+        <Routes>
+          {/* AUTH PAGES (redirect logged-in users away) */}
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
           <Route path="/admin-login" element={<AdminLogin />} />
 
-        {/* USER PROTECTED ROUTES */}
-        <Route element={<UserProtectedRoute />}>
+          {/* PUBLIC ROUTES (browsable without login) */}
           <Route path="/" element={<Home />} />
-          <Route path="/contact" element={<Contact />} />
           <Route path="/menu" element={<Menu />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/myorders" element={<MyOrder />} />
-          <Route path="/profile" element={<Profile/>}/>
-        </Route>
+          <Route path="/contact" element={<Contact />} />
 
-        {/* ADMIN PROTECTED ROUTES */}
-        <Route element={<AdminProtectedRoute />}>
-          <Route path="/admindash/*" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<UsersPage />} />
-          <Route path="/admin/users/create" element={<UserCreate />} />
-          <Route path="/admin/users/:id" element={<UserView />} />
-          <Route path="/admin/users/edit/:id" element={<UserEdit />} />
-        </Route>
+          {/* USER PROTECTED ROUTES (require authentication) */}
+          <Route element={<UserProtectedRoute />}>
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/myorders" element={<MyOrder />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
 
-        {/* 404 PAGE */}
-        <Route
-          path="*"
-          element={
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
-                <p className="text-xl text-gray-600">Page not found</p>
+          {/* ADMIN PROTECTED ROUTES */}
+          <Route element={<AdminProtectedRoute />}>
+            <Route path="/admindash/*" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<UsersPage />} />
+            <Route path="/admin/users/create" element={<UserCreate />} />
+            <Route path="/admin/users/:id" element={<UserView />} />
+            <Route path="/admin/users/edit/:id" element={<UserEdit />} />
+          </Route>
+
+          {/* 404 PAGE */}
+          <Route
+            path="*"
+            element={
+              <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                  <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+                  <p className="text-xl text-gray-600">Page not found</p>
+                </div>
               </div>
-            </div>
-          }
-        />
-      </Routes>
+            }
+          />
+        </Routes>
       </div>
 
       {!isAdminPage && <Footer />}

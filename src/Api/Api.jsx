@@ -27,11 +27,11 @@ goApi.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-     const isAuthEndpoint = originalRequest?.url?.includes("/auth/login") ||
-                           originalRequest?.url?.includes("/auth/signup") ||
-                           originalRequest?.url?.includes("/auth/verify-otp") ||
-                           originalRequest?.url?.includes("/auth/forgot-password") ||
-                           originalRequest?.url?.includes("/auth/reset-password");
+    const isAuthEndpoint = originalRequest?.url?.includes("/auth/login") ||
+      originalRequest?.url?.includes("/auth/signup") ||
+      originalRequest?.url?.includes("/auth/verify-otp") ||
+      originalRequest?.url?.includes("/auth/forgot-password") ||
+      originalRequest?.url?.includes("/auth/reset-password");
 
     if (isAuthEndpoint) {
       return Promise.reject(error); // ✅ pass error back to caller
@@ -49,8 +49,10 @@ goApi.interceptors.response.use(
 
         return goApi(originalRequest);
       } catch (err) {
-        localStorage.clear();
-        window.location.href = "/login";
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        // Let AuthContext handle redirect with return-URL state
+        window.dispatchEvent(new CustomEvent("auth:session-expired"));
         return Promise.reject(err);
       }
     }

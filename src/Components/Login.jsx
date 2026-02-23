@@ -380,12 +380,12 @@ const Login = () => {
               >
                 Forgot password?
               </Link>
-              <Link
+              {/* <Link
                 to="/admin-login"
                 className="block text-sm text-gray-500 hover:text-amber-600 transition-colors"
               >
                 Admin? Login here
-              </Link>
+              </Link> */}
             </div>
           )}
         </div>

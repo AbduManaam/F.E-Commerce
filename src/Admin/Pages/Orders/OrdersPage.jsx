@@ -9,7 +9,7 @@ const OrdersPage = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [modalLoading, setModalLoading] = useState(false); // ← for lazy load
+  const [modalLoading, setModalLoading] = useState(false); 
   const [message, setMessage] = useState({ type: "", text: "" });
   const itemsPerPage = 8;
 
@@ -29,14 +29,14 @@ const OrdersPage = () => {
     finally { setLoading(false); }
   };
 
-  // ✅ Lazy load - only fetch full order details when eye button is clicked
+  // Lazy load - only fetch full order details when eye button is clicked
   const handleViewOrder = async (order) => {
     setSelectedOrder(order); // show modal immediately with basic info
     setModalLoading(true);   // show spinner inside modal
     try {
       const res = await apiService.client.get(`/admin/orders/${order.ID}`);
       const fullOrder = res.data;
-      setSelectedOrder(fullOrder); // replace with full data including address
+      setSelectedOrder(fullOrder); 
     } catch {
       showMsg("error", "Failed to load order details");
     } finally {
@@ -47,7 +47,6 @@ const OrdersPage = () => {
   const updateOrderStatus = async (orderId, newStatus) => {
   try {
     await apiService.client.put(`/admin/orders/${orderId}/status`, { status: newStatus });
-    // Refetch orders so PaymentStatus reflects backend rules (COD cancelled → cancelled, etc.)
     await fetchOrders();
     showMsg("success", "Order status updated!");
   } catch { showMsg("error", "Failed to update status"); }
@@ -175,7 +174,6 @@ const totalRevenue = orders
                       <p className="text-xs text-gray-400">{items.length} item(s)</p>
                     </td>
 
-                    {/* Show UserID since ShippingAddress is null in list — full details load on click */}
                     <td className="px-6 py-4">
                       <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
                         User #{order.UserID}
@@ -207,7 +205,7 @@ const totalRevenue = orders
 
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        {/* ✅ Eye button - lazy loads full order details including address */}
+                        {/* Eye button - lazy loads full order details including address */}
                         <button onClick={() => handleViewOrder(order)} title="View Details"
                           className="p-2 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 opacity-0 group-hover:opacity-100 transition">
                           <Eye size={15} />
@@ -247,7 +245,7 @@ const totalRevenue = orders
         </div>
       )}
 
-      {/* ✅ Order Detail Modal - shows spinner while loading full details */}
+      {/* Order Detail Modal - shows spinner while loading full details */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -257,7 +255,7 @@ const totalRevenue = orders
                 <button onClick={() => setSelectedOrder(null)}><X className="w-5 h-5 text-gray-500 hover:text-gray-700" /></button>
               </div>
 
-              {/* ✅ Show spinner while fetching full details */}
+              {/*  Show spinner while fetching full details */}
               {modalLoading ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-3">
                   <div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent"></div>
@@ -280,7 +278,7 @@ const totalRevenue = orders
                     ))}
                   </div>
 
-                  {/* ✅ Shipping Address - loaded on demand */}
+                  {/* Shipping Address */}
                   {selectedOrder.ShippingAddress ? (
                     <div className="mb-5">
                       <h4 className="font-semibold text-gray-800 mb-2">Shipping Address</h4>

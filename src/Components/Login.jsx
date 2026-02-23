@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom"
 import { useAuth } from "./AuthContext"
 import { Eye, EyeOff, Mail, Lock, User, ShieldCheck } from "lucide-react"
 
-// ✅ OUTSIDE Login component — prevents remount on every render
+
 const InputField = ({ name, type = "text", placeholder, icon: Icon, showToggle, onToggle, show, value, onChange, error, disabled }) => (
   <div className="mb-4">
     <div className="relative">

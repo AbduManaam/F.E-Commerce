@@ -87,7 +87,13 @@ const AppContent = () => {
       {!isAdminPage && <Footer />}
       <ToastContainer
         position="top-right"
-        autoClose={3000}
+         toastStyle={{
+            width: "250px",
+            fontSize: "14px",
+            padding: "12px",
+        }}
+        style={{ marginTop: "60px" }}
+        autoClose={2000}
         hideProgressBar={false}
         newestOnTop
         closeOnClick

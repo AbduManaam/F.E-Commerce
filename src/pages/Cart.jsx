@@ -93,7 +93,7 @@ const Cart = () => {
  const handleCheckout = async () => {
   if (!user) {
     toast.error("Please login to place an order 🚨");
-    navigate("/login");
+    // navigate("/login");
     return;
   }
 

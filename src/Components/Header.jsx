@@ -76,6 +76,7 @@ const Header = () => {
           {/* Right Side Icons */}
           <div className="flex items-center gap-4">
             {/* Wishlist */}
+           { user&&
             <Link to="/wishlist" className="relative p-2 hover:bg-gray-100 rounded-full">
               <Heart className="w-6 h-6 text-gray-700" />
               {wishlist.length > 0 && (
@@ -84,8 +85,10 @@ const Header = () => {
                 </span>
               )}
             </Link>
+            }
 
             {/* Cart */}
+             { user&&
             <Link to="/cart" className="relative p-2 hover:bg-gray-100 rounded-full">
               <ShoppingCart className="w-6 h-6 text-gray-700" />
               {cartCount > 0 && (
@@ -94,7 +97,8 @@ const Header = () => {
                 </span>
               )}
             </Link>
-
+            }
+            
             {/* User Dropdown */}
             {user ? (
               <div className="relative">

@@ -76,7 +76,8 @@ const loadCart = async () => {
   // ✅ Add to cart using POST /api/cart
   const addToCart = async (product, size) => {
     if (!user) {
-      navigate("/login");
+      toast.info("Please login to add items to cart");
+    
       return;
     }
     if (isAdminViewingUserModule) {
@@ -108,7 +109,8 @@ const loadCart = async () => {
 
 const removeFromCart = async (id, size) => {
   if (!user) {
-    navigate("/login");
+    // navigate("/login");
+      toast.info("Please login to add remove to cart");
     return;
   }
   if (isAdminViewingUserModule) {
@@ -142,7 +144,8 @@ const removeFromCart = async (id, size) => {
   // ✅ Update quantity using PUT /api/cart/item/:itemId
  const updateQty = async (id, size, qty) => {
   if (!user) {
-    navigate("/login");
+    // navigate("/login");
+      toast.info("Please login to add update to cart");
     return;
   }
   if (isAdminViewingUserModule) {
@@ -194,7 +197,7 @@ const resetCart = async () => {
   //  Clear cart
   const clearCart = async () => {
     if (!user) {
-      navigate("/login");
+          toast.info("Please login to clear items to cart");
       return;
     }
     if (isAdminViewingUserModule) {

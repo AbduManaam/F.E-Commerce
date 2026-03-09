@@ -11,7 +11,7 @@ export const WishlistProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
   const { user, isAdminViewingUserModule } = useAuth();
   const navigate = useNavigate();
-  const { addToCart, loadCart } = useCart(); // ✅ added loadCart
+  const { addToCart, loadCart } = useCart();
 
   useEffect(() => {
     if (user) {
@@ -60,7 +60,7 @@ export const WishlistProvider = ({ children }) => {
   const addToWishlist = async (product) => {
     if (!user) {
       toast.info("Please login to add items to wishlist");
-      navigate("/login");
+    //   navigate("/login");
       return;
     }
     if (isAdminViewingUserModule) {
@@ -99,8 +99,8 @@ export const WishlistProvider = ({ children }) => {
 
   const removeFromWishlist = async (id) => {
     if (!user) {
-      navigate("/login");
-      return;
+      toast.info("Please login to remove items to wishlist");
+        return;
     }
     if (isAdminViewingUserModule) {
       toast.info("View-only mode: Admins cannot modify wishlist.");
@@ -122,7 +122,8 @@ export const WishlistProvider = ({ children }) => {
 
   const clearWishlist = async () => {
     if (!user) {
-      navigate("/login");
+    //   navigate("/login");
+      toast.info("Please login to clear items to wishlist");
       return;
     }
     if (isAdminViewingUserModule) {
@@ -144,7 +145,7 @@ export const WishlistProvider = ({ children }) => {
   const moveToCart = async (product, size) => {
     if (!user) {
       toast.info("Please login to move items to cart");
-      navigate("/login");
+    //   navigate("/login");
       return;
     }
     if (isAdminViewingUserModule) {

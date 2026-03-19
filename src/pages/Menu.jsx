@@ -9,6 +9,7 @@ const Menu = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -36,10 +37,10 @@ const Menu = () => {
   // Price ranges
   const priceRanges = [
     { value: "all", label: "All Prices" },
-    { value: "0-10", label: "Under $10" },
-    { value: "10-25", label: "$10 - $25" },
-    { value: "25-50", label: "$25 - $50" },
-    { value: "50+", label: "$50+" },
+    { value: "0-10", label: "Under ₹10" },
+    { value: "10-25", label: "₹10 - ₹25" },
+    { value: "25-50", label: "₹25 - ₹50" },
+    { value: "50+", label: "₹50+" },
   ];
 
   // Transform backend data
@@ -81,60 +82,60 @@ const Menu = () => {
   }, []);
 
   // ✅ Accepts categoryId to send to backend
- const fetchProducts = async (
-  category = "All",
-  page = 1,
-  search = "",
-  sort = sortBy,
-  price = priceRange,
-  categoryId = ""
-) => {
-  try {
-    setLoading(true);
+  const fetchProducts = async (
+    category = "All",
+    page = 1,
+    search = "",
+    sort = sortBy,
+    price = priceRange,
+    categoryId = ""
+  ) => {
+    try {
+      setLoading(true);
 
-    const params = {
-      // ✅ only send category_id, not category_name
-      ...(categoryId ? { category_id: categoryId } : {}),
-      page: page,
-      limit: itemsPerPage,
-      search: search,
-      sort: sort.includes('price') ? 'price' : 'created_at',
-      order: sort === 'price-high' ? 'desc' : 'asc',
-    };
+      const params = {
+        // ✅ only send category_id, not category_name
+        ...(categoryId ? { category_id: categoryId } : {}),
+        page: page,
+        limit: itemsPerPage,
+        search: search,
+        sort: sort.includes('price') ? 'price' : 'created_at',
+        order: sort === 'price-high' ? 'desc' : 'asc',
+      };
 
-    // Add price filter if selected
-    if (price !== 'all') {
-      const [min, max] = price.split('-').map(p => p.replace('+', ''));
-      params.min_price = min;
-      if (max) params.max_price = max;
-    }
-
-    const response = await apiService.getFilteredProducts(params);
-
-    if (response.success) {
-      const productList = response.data.products || [];
-      let transformedProducts = productList.map(transformProduct);
-
-      // Client-side sorting for name
-      if (sort === 'name') {
-        transformedProducts.sort((a, b) => a.title.localeCompare(b.title));
+      // Add price filter if selected
+      if (price !== 'all') {
+        const [min, max] = price.split('-').map(p => p.replace('+', ''));
+        params.min_price = min;
+        if (max) params.max_price = max;
       }
 
-      setProducts(transformedProducts);
-      setTotalCount(response.data.total || 0);
-      setCurrentPage(page);
-    } else {
+      const response = await apiService.getFilteredProducts(params);
+
+      if (response.success) {
+        const productList = response.data.products || [];
+        let transformedProducts = productList.map(transformProduct);
+
+        // Client-side sorting for name
+        if (sort === 'name') {
+          transformedProducts.sort((a, b) => a.title.localeCompare(b.title));
+        }
+
+        setProducts(transformedProducts);
+        setTotalCount(response.data.total || 0);
+        setCurrentPage(page);
+      } else {
+        setProducts([]);
+        setTotalCount(0);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
       setProducts([]);
       setTotalCount(0);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    setProducts([]);
-    setTotalCount(0);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -143,7 +144,7 @@ const Menu = () => {
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchProducts(selectedCategory, 1, searchTerm, sortBy, priceRange);
+      fetchProducts(selectedCategory, 1, searchTerm, sortBy, priceRange, selectedCategoryId);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchTerm, sortBy]);
@@ -151,12 +152,14 @@ const Menu = () => {
   // ✅ Accepts both name and ID
   const handleFilter = (categoryName, categoryId = "") => {
     setSelectedCategory(categoryName);
+    setSelectedCategoryId(categoryId);
     setCurrentPage(1);
     fetchProducts(categoryName, 1, searchTerm, sortBy, priceRange, categoryId);
   };
 
   const clearFilters = () => {
     setSelectedCategory("All");
+    setSelectedCategoryId("");
     setSearchTerm("");
     setSortBy("newest");
     setPriceRange("all");
@@ -171,7 +174,7 @@ const Menu = () => {
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
-      fetchProducts(selectedCategory, page, searchTerm, sortBy, priceRange);
+      fetchProducts(selectedCategory, page, searchTerm, sortBy, priceRange, selectedCategoryId);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -295,11 +298,10 @@ const Menu = () => {
                   {/* All button */}
                   <button
                     onClick={() => handleFilter("All", "")}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                      selectedCategory === "All"
-                        ? "bg-amber-500 text-white shadow-md"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === "All"
+                      ? "bg-amber-500 text-white shadow-md"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
                   >
                     All
                   </button>
@@ -309,11 +311,10 @@ const Menu = () => {
                     <button
                       key={cat.ID}
                       onClick={() => handleFilter(cat.Name, cat.ID)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        selectedCategory === cat.Name
-                          ? "bg-amber-500 text-white shadow-md"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat.Name
+                        ? "bg-amber-500 text-white shadow-md"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
                     >
                       {cat.Name}
                     </button>
@@ -330,13 +331,12 @@ const Menu = () => {
                       key={range.value}
                       onClick={() => {
                         setPriceRange(range.value);
-                        fetchProducts(selectedCategory, 1, searchTerm, sortBy, range.value);
-                        }}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        priceRange === range.value
-                          ? "bg-blue-500 text-white shadow-md"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
+                        fetchProducts(selectedCategory, 1, searchTerm, sortBy, range.value, selectedCategoryId);
+                      }}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${priceRange === range.value
+                        ? "bg-blue-500 text-white shadow-md"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
                     >
                       {range.label}
                     </button>
@@ -379,11 +379,10 @@ const Menu = () => {
             )}
           </div>
         ) : (
-          <div className={`grid gap-6 ${
-            viewMode === "grid"
-              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-              : "grid-cols-1"
-          }`}>
+          <div className={`grid gap-6 ${viewMode === "grid"
+            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            : "grid-cols-1"
+            }`}>
             {products.map((product) => (
               <div key={product.id} className={viewMode === "list" ? "w-full" : ""}>
                 <Items product={product} viewMode={viewMode} />
@@ -416,11 +415,10 @@ const Menu = () => {
                       <button
                         key={pageNum}
                         onClick={() => goToPage(pageNum)}
-                        className={`w-10 h-10 rounded-lg font-medium transition ${
-                          currentPage === pageNum
-                            ? "bg-amber-500 text-white"
-                            : "text-gray-600 hover:bg-gray-100"
-                        }`}
+                        className={`w-10 h-10 rounded-lg font-medium transition ${currentPage === pageNum
+                          ? "bg-amber-500 text-white"
+                          : "text-gray-600 hover:bg-gray-100"
+                          }`}
                       >
                         {pageNum}
                       </button>

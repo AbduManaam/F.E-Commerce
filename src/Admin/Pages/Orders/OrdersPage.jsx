@@ -9,7 +9,7 @@ const OrdersPage = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [modalLoading, setModalLoading] = useState(false); 
+  const [modalLoading, setModalLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
   const itemsPerPage = 8;
 
@@ -36,7 +36,7 @@ const OrdersPage = () => {
     try {
       const res = await apiService.client.get(`/admin/orders/${order.ID}`);
       const fullOrder = res.data;
-      setSelectedOrder(fullOrder); 
+      setSelectedOrder(fullOrder);
     } catch {
       showMsg("error", "Failed to load order details");
     } finally {
@@ -45,12 +45,12 @@ const OrdersPage = () => {
   };
 
   const updateOrderStatus = async (orderId, newStatus) => {
-  try {
-    await apiService.client.put(`/admin/orders/${orderId}/status`, { status: newStatus });
-    await fetchOrders();
-    showMsg("success", "Order status updated!");
-  } catch { showMsg("error", "Failed to update status"); }
-};
+    try {
+      await apiService.client.put(`/admin/orders/${orderId}/status`, { status: newStatus });
+      await fetchOrders();
+      showMsg("success", "Order status updated!");
+    } catch { showMsg("error", "Failed to update status"); }
+  };
 
   const handleRefund = async (orderId) => {
     if (!window.confirm("Process refund for this order?")) return;
@@ -86,9 +86,9 @@ const OrdersPage = () => {
     partially_cancelled: "bg-orange-100 text-orange-700",
   }[status?.toLowerCase()] || "bg-gray-100 text-gray-700");
 
-const totalRevenue = orders
-  .filter(o => o.Status === "delivered")
-  .reduce((sum, o) => sum + (o.FinalTotal || o.Total || 0), 0);  const pendingCount = orders.filter(o => o.Status === "pending").length;
+  const totalRevenue = orders
+    .filter(o => o.Status === "delivered")
+    .reduce((sum, o) => sum + (o.FinalTotal || o.Total || 0), 0); const pendingCount = orders.filter(o => o.Status === "pending").length;
   const deliveredCount = orders.filter(o => o.Status === "delivered").length;
 
   return (
@@ -131,7 +131,7 @@ const totalRevenue = orders
           { label: "Total Orders", value: orders.length, color: "text-indigo-600" },
           { label: "Pending", value: pendingCount, color: "text-yellow-600" },
           { label: "Delivered", value: deliveredCount, color: "text-green-600" },
-          { label: "Revenue", value: `$${totalRevenue.toFixed(2)}`, color: "text-purple-600" },
+          { label: "Revenue", value: `₹${totalRevenue.toFixed(2)}`, color: "text-purple-600" },
         ].map((s, i) => (
           <div key={i} className="bg-white p-4 rounded-xl shadow text-center">
             <p className="text-gray-500 text-sm">{s.label}</p>
@@ -162,7 +162,7 @@ const totalRevenue = orders
                 const paymentMethod = order.PaymentMethod || "N/A";
                 const total = order.FinalTotal || order.Total || 0;
                 const items = order.Items || [];
-                const canRefund =  (status === "cancelled" || status === "delivered") && paymentStatus === "paid" && paymentMethod !== "cod";
+                const canRefund = (status === "cancelled" || status === "delivered") && paymentStatus === "paid" && paymentMethod !== "cod";
 
                 return (
                   <tr key={order.ID} className="border-b hover:bg-indigo-50/40 transition group">
@@ -180,15 +180,14 @@ const totalRevenue = orders
                       </span>
                     </td>
 
-                    <td className="px-6 py-4 font-bold text-indigo-600">${Number(total).toFixed(2)}</td>
+                    <td className="px-6 py-4 font-bold text-indigo-600">₹{Number(total).toFixed(2)}</td>
 
                     <td className="px-6 py-4">
                       <p className="text-xs capitalize text-gray-600">{paymentMethod}</p>
-                      <p className={`text-xs font-medium capitalize mt-1 ${
-                        paymentStatus === "paid" ? "text-green-600" :
-                        paymentStatus === "refunded" ? "text-purple-600" :
-                        paymentStatus === "cancelled" ? "text-red-600" : "text-yellow-600"
-                      }`}>{paymentStatus}</p>
+                      <p className={`text-xs font-medium capitalize mt-1 ${paymentStatus === "paid" ? "text-green-600" :
+                          paymentStatus === "refunded" ? "text-purple-600" :
+                            paymentStatus === "cancelled" ? "text-red-600" : "text-yellow-600"
+                        }`}>{paymentStatus}</p>
                     </td>
 
                     <td className="px-6 py-4">
@@ -310,10 +309,10 @@ const totalRevenue = orders
                             <div className="flex-1">
                               <p className="font-medium text-sm">{product.Name || "Unknown"}</p>
                               <p className="text-xs text-gray-500">
-                                Qty: {item.Quantity} × ${(item.FinalPrice || 0).toFixed(2)}
+                                Qty: {item.Quantity} × ₹{(item.FinalPrice || 0).toFixed(2)}
                               </p>
                             </div>
-                            <p className="font-semibold text-sm">${(item.Subtotal || 0).toFixed(2)}</p>
+                            <p className="font-semibold text-sm">₹{(item.Subtotal || 0).toFixed(2)}</p>
                           </div>
                         );
                       })}
@@ -326,7 +325,7 @@ const totalRevenue = orders
                   {/* Total */}
                   <div className="border-t pt-4 flex justify-between items-center text-lg font-bold">
                     <span>Total:</span>
-                    <span className="text-indigo-600">${(selectedOrder.FinalTotal || selectedOrder.Total || 0).toFixed(2)}</span>
+                    <span className="text-indigo-600">₹{(selectedOrder.FinalTotal || selectedOrder.Total || 0).toFixed(2)}</span>
                   </div>
 
                   {/* Refund */}

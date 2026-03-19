@@ -9,7 +9,7 @@ export default function DashboardHome() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [totalUsers,setTotalUsers] = useState(0)
+  const [totalUsers, setTotalUsers] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,10 +21,10 @@ export default function DashboardHome() {
         ]);
 
         setUsers(
-        Array.isArray(usersRes.data) ? usersRes.data :
-        Array.isArray(usersRes.data?.data) ? usersRes.data.data :
-        
-        usersRes.data?.users || []);
+          Array.isArray(usersRes.data) ? usersRes.data :
+            Array.isArray(usersRes.data?.data) ? usersRes.data.data :
+
+              usersRes.data?.users || []);
         setTotalUsers(usersRes.data?.total || 0)
         setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data?.orders || []);
         setProducts(Array.isArray(productsRes.data) ? productsRes.data : productsRes.data?.products || []);
@@ -42,14 +42,14 @@ export default function DashboardHome() {
 
   const calculateStats = () => {
     const totalRevenue = orders
-  .filter(o => o.Status === "delivered")
-  .reduce((sum, o) => sum + (o.FinalTotal || o.Total || 0), 0);
+      .filter(o => o.Status === "delivered")
+      .reduce((sum, o) => sum + (o.FinalTotal || o.Total || 0), 0);
 
     return [
       { title: "Total Users", value: totalUsers.toLocaleString() },
       { title: "Total Orders", value: orders.length.toLocaleString() },
       { title: "Total Products", value: products.length.toLocaleString() },
-      { title: "Total Revenue", value: `$${totalRevenue.toFixed(2)}` },
+      { title: "Total Revenue", value: `₹${totalRevenue.toFixed(2)}` },
     ];
   };
 
@@ -142,7 +142,7 @@ export default function DashboardHome() {
             <XAxis dataKey="name" />
             <YAxis />
             <Tooltip
-              formatter={(value) => [`$${Number(value).toFixed(2)}`, "Revenue"]}
+              formatter={(value) => [`₹${Number(value).toFixed(2)}`, "Revenue"]}
               labelFormatter={(label, payload) => {
                 if (payload && payload[0]) return `Date: ${payload[0].payload.fullDate}`;
                 return label;

@@ -371,9 +371,9 @@ class ApiService {
     }
   }
 
-  async addToCart(productId, quantity = 1) {
+  async addToCart(productId, quantity = 1, sizeType = 'H') {
     try {
-      const res = await this.client.post("/api/cart", { product_id: Number(productId), quantity });
+      const res = await this.client.post("/api/cart", { product_id: Number(productId), quantity, type: sizeType });
       return { success: true, data: res.data };
     } catch (err) {
       return { success: false, ...this.normalizeError(err) };
@@ -566,26 +566,10 @@ class ApiService {
 
   async createAddress(addressData) {
     try {
-      if (editingAddress) {
-        await apiService.client.put(`/api/addresses/${editingAddress.ID || editingAddress.id}`, addressForm);
-        showMessage("success", "Address updated!");
-      } else {
-        const result = await apiService.createAddress(addressForm);
-        if (!result.success) {
-          showMessage("error", result.message || "Failed to save address");
-          return;
-        }
-        showMessage("success", "Address added!");
-      }
-      resetAddressForm();
-      fetchAddresses();
+      const res = await this.client.post('/api/addresses', addressData);
+      return { success: true, data: res.data };
     } catch (err) {
-      const msg =
-        err?.response?.data?.error?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        "Failed to save address";
-      showMessage("error", msg);
+      return { success: false, ...this.normalizeError(err) };
     }
   }
 

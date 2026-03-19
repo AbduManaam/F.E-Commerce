@@ -19,27 +19,27 @@ export const generateInvoice = (order, user = {}) => {
   const CONTENT_W = PAGE_W - MARGIN * 2;
 
   // ─── COLORS ───────────────────────────────────────────────
-  const BRAND       = [230, 100, 30];   // orange
-  const DARK        = [30,  30,  30];
-  const MUTED       = [120, 120, 120];
-  const LIGHT_BG    = [250, 250, 248];
-  const DIVIDER     = [220, 220, 215];
-  const SUCCESS     = [34,  139, 34];
-  const DANGER      = [200, 50,  50];
+  const BRAND = [230, 100, 30];   // orange
+  const DARK = [30, 30, 30];
+  const MUTED = [120, 120, 120];
+  const LIGHT_BG = [250, 250, 248];
+  const DIVIDER = [220, 220, 215];
+  const SUCCESS = [34, 139, 34];
+  const DANGER = [200, 50, 50];
 
   // ─── HELPERS ──────────────────────────────────────────────
-  const fmt = (n) => `$${Number(n || 0).toFixed(2)}`;
+  const fmt = (n) => `\u20b9${Number(n || 0).toFixed(2)}`;
 
   const statusColor = (s) => {
     const map = {
-      pending:             [217, 119, 6],
-      confirmed:           [37,  99, 235],
-      paid:                SUCCESS,
-      shipped:             [124, 58, 237],
-      delivered:           SUCCESS,
-      cancelled:           DANGER,
+      pending: [217, 119, 6],
+      confirmed: [37, 99, 235],
+      paid: SUCCESS,
+      shipped: [124, 58, 237],
+      delivered: SUCCESS,
+      cancelled: DANGER,
       partially_cancelled: [234, 88, 12],
-      refunded:            [109, 40, 217],
+      refunded: [109, 40, 217],
     };
     return map[s?.toLowerCase()] || MUTED;
   };
@@ -47,16 +47,16 @@ export const generateInvoice = (order, user = {}) => {
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     return new Date(dateStr).toLocaleDateString("en-IN", {
-      day:   "2-digit",
+      day: "2-digit",
       month: "short",
-      year:  "numeric",
+      year: "numeric",
     });
   };
 
   // ─── INVOICE META ─────────────────────────────────────────
   const invoiceNumber = `INV-${String(order.id).padStart(6, "0")}`;
-  const invoiceDate   = formatDate(order.created_at || new Date());
-  const orderDate     = formatDate(order.created_at);
+  const invoiceDate = formatDate(order.created_at || new Date());
+  const orderDate = formatDate(order.created_at);
 
   // ─── HEADER BAND ──────────────────────────────────────────
   doc.setFillColor(...BRAND);
@@ -131,11 +131,11 @@ export const generateInvoice = (order, user = {}) => {
   doc.text("ORDER DETAILS", rx, y + 7);
 
   const infoRows = [
-    ["Order ID",       `#${order.id}`],
-    ["Order Date",     orderDate],
-    ["Payment",        (order.payment_method || "COD").toUpperCase()],
-    ["Pay Status",     (order.payment_status || "pending").toUpperCase()],
-    ["Order Status",   (order.status || "").toUpperCase()],
+    ["Order ID", `#${order.id}`],
+    ["Order Date", orderDate],
+    ["Payment", (order.payment_method || "COD").toUpperCase()],
+    ["Pay Status", (order.payment_status || "pending").toUpperCase()],
+    ["Order Status", (order.status || "").toUpperCase()],
   ];
 
   infoRows.forEach(([label, val], i) => {
@@ -173,14 +173,14 @@ export const generateInvoice = (order, user = {}) => {
   y += 4;
 
   const tableRows = (order.items || []).map((item, idx) => {
-    const name    = item.product?.name || `Item ${idx + 1}`;
-    const qty     = item.quantity || 1;
-    const price   = item.price || 0;
-    const disc    = item.discount_amount || 0;
-    const final   = item.final_price || price;
-    const sub     = item.subtotal || final * qty;
-    const status  = (item.status || "pending").charAt(0).toUpperCase() +
-                    (item.status || "pending").slice(1);
+    const name = item.product?.name || `Item ${idx + 1}`;
+    const qty = item.quantity || 1;
+    const price = item.price || 0;
+    const disc = item.discount_amount || 0;
+    const final = item.final_price || price;
+    const sub = item.subtotal || final * qty;
+    const status = (item.status || "pending").charAt(0).toUpperCase() +
+      (item.status || "pending").slice(1);
 
     return [
       idx + 1,
@@ -213,7 +213,7 @@ export const generateInvoice = (order, user = {}) => {
       fontSize: 8.5,
     },
     columnStyles: {
-      0: { cellWidth: 8,  halign: "center" },
+      0: { cellWidth: 8, halign: "center" },
       1: { cellWidth: 55 },
       2: { cellWidth: 10, halign: "center" },
       3: { cellWidth: 22, halign: "right" },
@@ -229,8 +229,8 @@ export const generateInvoice = (order, user = {}) => {
         const val = data.cell.text[0]?.toLowerCase();
         data.cell.styles.textColor =
           val === "cancelled" || val === "refunded" ? DANGER :
-          val === "pending"                         ? [180, 100, 0] :
-          SUCCESS;
+            val === "pending" ? [180, 100, 0] :
+              SUCCESS;
         data.cell.styles.fontStyle = "bold";
       }
       // Color negative discount
@@ -245,17 +245,17 @@ export const generateInvoice = (order, user = {}) => {
 
   // ─── TOTALS SUMMARY ───────────────────────────────────────
   const tableEndY = doc.lastAutoTable.finalY + 6;
-  const summaryX  = PAGE_W - MARGIN - 72;
-  const summaryW  = 72;
+  const summaryX = PAGE_W - MARGIN - 72;
+  const summaryW = 72;
 
   doc.setFillColor(...LIGHT_BG);
   doc.roundedRect(summaryX, tableEndY, summaryW, 38, 2, 2, "F");
 
   const totals = [
-    ["Subtotal",       fmt(order.total),           false],
-    ["Discount",       order.discount > 0 ? `-${fmt(order.discount)}` : "—", true],
-    ["Shipping Fee",   fmt(10),                    false],
-    ["Tax (2%)",       fmt((order.total || 0) * 0.02), false],
+    ["Subtotal", fmt(order.total), false],
+    ["Discount", order.discount > 0 ? `-${fmt(order.discount)}` : "—", true],
+    ["Shipping Fee", fmt(10), false],
+    ["Tax (2%)", fmt((order.total || 0) * 0.02), false],
   ];
 
   let ty = tableEndY + 8;

@@ -34,7 +34,7 @@ goApi.interceptors.response.use(
       originalRequest?.url?.includes("/auth/reset-password");
 
     if (isAuthEndpoint) {
-      return Promise.reject(error); // ✅ pass error back to caller
+      return Promise.reject(error); 
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {

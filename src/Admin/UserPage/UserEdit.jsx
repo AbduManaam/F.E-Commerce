@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import goApi from "../../Api/Api";
 
 const UserEdit = () => {
   const { id } = useParams();
@@ -9,7 +9,7 @@ const UserEdit = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    axios.get(`http://127.0.0.1:8080/users/${id}`).then((res) => setForm(res.data));
+    goApi.get(`/admin/users/${id}`).then((res) => setForm(res.data));
   }, [id]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,7 +18,7 @@ const UserEdit = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put(`http://127.0.0.1:8080/users/${id}`, form);
+      await goApi.put(`/admin/users/${id}`, form);
       navigate("/admin/users");  //Automatically returns admin to users list after saving edits.
     } catch (err) {
       console.error("Update failed:", err);

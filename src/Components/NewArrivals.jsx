@@ -11,34 +11,8 @@ const NewArrivals = ({ products }) => {
     return <div className="text-center py-20">No products found</div>;
   }
 
-  // ✅ Transform products to match Items component expectations
-  const transformProduct = (product) => {
-    console.log("new arrivals",product);
-    
-    // Extract image URLs
-    let imageUrls = [];
-    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-      imageUrls = product.images[0]
-    }
-    
-    if (imageUrls.length === 0) {
-      imageUrls = ["/images/placeholder.png"];
-    }
-
-    return {
-      id: Number(product.ID) || Number(product.id),
-      title: product.Name || product.title,
-      description: product.Description || product.description || "",
-      images:imageUrls,
-      price: product.FinalPrice || product.Price || product.price || 0,
-      stock: product.Stock || product.stock,
-      category_name: product.CategoryName || product.category_name,
-      _original: product
-    };
-  };
-
-  // ✅ Transform all products
-  const transformedProducts = products.map(transformProduct);
+  // Products are already transformed by Home.jsx — use them directly
+  const transformedProducts = products;
 
   return (
     // <section className="max-padd-containerr py-22 xl:py-45 bg-white">

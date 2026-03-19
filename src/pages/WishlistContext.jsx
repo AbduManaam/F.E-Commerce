@@ -60,7 +60,7 @@ export const WishlistProvider = ({ children }) => {
   const addToWishlist = async (product) => {
     if (!user) {
       toast.info("Please login to add items to wishlist");
-    //   navigate("/login");
+      //   navigate("/login");
       return;
     }
     if (isAdminViewingUserModule) {
@@ -100,7 +100,7 @@ export const WishlistProvider = ({ children }) => {
   const removeFromWishlist = async (id) => {
     if (!user) {
       toast.info("Please login to remove items to wishlist");
-        return;
+      return;
     }
     if (isAdminViewingUserModule) {
       toast.info("View-only mode: Admins cannot modify wishlist.");
@@ -122,7 +122,7 @@ export const WishlistProvider = ({ children }) => {
 
   const clearWishlist = async () => {
     if (!user) {
-    //   navigate("/login");
+      //   navigate("/login");
       toast.info("Please login to clear items to wishlist");
       return;
     }
@@ -145,7 +145,7 @@ export const WishlistProvider = ({ children }) => {
   const moveToCart = async (product, size) => {
     if (!user) {
       toast.info("Please login to move items to cart");
-    //   navigate("/login");
+      //   navigate("/login");
       return;
     }
     if (isAdminViewingUserModule) {
@@ -154,14 +154,10 @@ export const WishlistProvider = ({ children }) => {
     }
 
     try {
-      const selectedSize =
-        size ||
-        (product.price && typeof product.price === "object"
-          ? Object.keys(product.price)[0]
-          : null);
+      const sizeType = size || 'H';
 
       // Call APIs directly to avoid duplicate toasts from addToCart/removeFromWishlist
-      await apiService.addToCart(product.id, 1);
+      await apiService.addToCart(product.id, 1, sizeType);
       await apiService.removeFromWishlist(product.id);
 
       // Sync both contexts

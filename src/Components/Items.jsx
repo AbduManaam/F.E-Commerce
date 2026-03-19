@@ -6,26 +6,35 @@ import { toast } from "react-toastify";
 import { ShoppingCart, ArrowRight } from "lucide-react";
 
 const Items = ({ product, viewMode = "grid" }) => {
-  // Initialize with first available size or 'H' for half/full
+  // Determine if product has half pricing available
+  const hasHalfPrice = (
+    (product._original?.Prices && Array.isArray(product._original.Prices) && product._original.Prices.some(p => p.Type === "H")) ||
+    (product.halfPrice > 0) ||
+    (product._original?.half_price > 0)
+  );
+
+  // Initialize with first available size; default to 'F' if no half price exists
   const [size, setSize] = useState(
-    product.sizes && product.sizes.length > 0 ? product.sizes[0] : "H"
+    product.sizes && product.sizes.length > 0 ? product.sizes[0] : (hasHalfPrice ? "H" : "F")
   );
   const [imageError, setImageError] = useState(false);
 
   const { addToCart } = useCart();
   const { wishlist, addToWishlist, removeFromWishlist, moveToCart } = useWishlist();
-  const currency = "$";
+  const currency = "₹";
 
   const isInWishlist = wishlist.some((w) => Number(w.id) === Number(product.id));
 
   const handleAddToCart = () => {
-    addToCart(product, size);
+    // Pass product with the resolved price for the selected size
+    const productWithPrice = { ...product, price: currentPrice };
+    addToCart(productWithPrice, size);
   };
 
   const handleWishlistToggle = () => {
 
-     console.log("Product being added:", product); 
-  console.log("Product ID:", product.id);
+    console.log("Product being added:", product);
+    console.log("Product ID:", product.id);
 
     if (isInWishlist) removeFromWishlist(product.id);
     else addToWishlist(product);
@@ -40,16 +49,27 @@ const Items = ({ product, viewMode = "grid" }) => {
 
   const imageUrl = getImageUrl();
 
-  // Check if product has Half/Full pricing
-  const hasHalfFullPricing = product._original?.Prices &&
-    Array.isArray(product._original.Prices) &&
-    product._original.Prices.length > 1;
+  // Check if product has BOTH Half and Full pricing (show toggle only when both exist)
+  const hasHalfFullPricing = (
+    (product._original?.Prices && Array.isArray(product._original.Prices) &&
+      product._original.Prices.some(p => p.Type === "H") && product._original.Prices.some(p => p.Type === "F")) ||
+    (product.halfPrice > 0 && product.fullPrice > 0) ||
+    (product._original?.half_price > 0 && product._original?.full_price > 0)
+  );
 
   // Get price for selected size
   const getPrice = () => {
-    if (hasHalfFullPricing && product._original?.Prices) {
+    // (a) From Prices array (Menu/Wishlist data shape)
+    if (product._original?.Prices && Array.isArray(product._original.Prices)) {
       const priceObj = product._original.Prices.find(p => p.Type === size);
-      return priceObj ? priceObj.Price : product.price;
+      if (priceObj) return priceObj.Price;
+    }
+    // (b) From flat half_price/full_price (New Arrivals DTO shape)
+    if (product.halfPrice > 0 || product.fullPrice > 0) {
+      return size === "H" ? (product.halfPrice || product.price) : (product.fullPrice || product.price);
+    }
+    if (product._original?.half_price > 0 || product._original?.full_price > 0) {
+      return size === "H" ? (product._original.half_price || product.price) : (product._original.full_price || product.price);
     }
     return product.price;
   };
@@ -79,9 +99,8 @@ const Items = ({ product, viewMode = "grid" }) => {
           )}
           <button
             onClick={handleWishlistToggle}
-            className={`absolute top-2 right-2 rounded-full p-2 shadow-md transition ${
-              isInWishlist ? "bg-red-500" : "bg-white hover:bg-red-50"
-            }`}
+            className={`absolute top-2 right-2 rounded-full p-2 shadow-md transition ${isInWishlist ? "bg-red-500" : "bg-white hover:bg-red-50"
+              }`}
           >
             <img
               src={isInWishlist ? "/images/other/white wishlist.png" : "/images/other/wishlist.png"}
@@ -114,17 +133,15 @@ const Items = ({ product, viewMode = "grid" }) => {
               <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
                 <button
                   onClick={() => setSize("H")}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    size === "H" ? "bg-white shadow-sm text-amber-600" : "text-gray-600"
-                  }`}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${size === "H" ? "bg-white shadow-sm text-amber-600" : "text-gray-600"
+                    }`}
                 >
                   Half
                 </button>
                 <button
                   onClick={() => setSize("F")}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    size === "F" ? "bg-white shadow-sm text-amber-600" : "text-gray-600"
-                  }`}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${size === "F" ? "bg-white shadow-sm text-amber-600" : "text-gray-600"
+                    }`}
                 >
                   Full
                 </button>
@@ -171,9 +188,8 @@ const Items = ({ product, viewMode = "grid" }) => {
 
           <button
             onClick={handleWishlistToggle}
-            className={`absolute top-2 right-2 rounded-full p-2 shadow-md transition ${
-              isInWishlist ? "bg-red-500" : "bg-white hover:bg-red-50"
-            }`}
+            className={`absolute top-2 right-2 rounded-full p-2 shadow-md transition ${isInWishlist ? "bg-red-500" : "bg-white hover:bg-red-50"
+              }`}
           >
             <img
               src={
@@ -195,9 +211,8 @@ const Items = ({ product, viewMode = "grid" }) => {
 
           <button
             onClick={handleWishlistToggle}
-            className={`absolute top-2 right-2 rounded-full p-2 shadow-md transition ${
-              isInWishlist ? "bg-red-500" : "bg-white hover:bg-red-50"
-            }`}
+            className={`absolute top-2 right-2 rounded-full p-2 shadow-md transition ${isInWishlist ? "bg-red-500" : "bg-white hover:bg-red-50"
+              }`}
           >
             <img
               src={
@@ -224,21 +239,19 @@ const Items = ({ product, viewMode = "grid" }) => {
         <div className="flex items-center gap-1 mt-3 bg-white rounded-full p-1 shadow-sm">
           <button
             onClick={() => setSize("H")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              size === "H"
-                ? "bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-md"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${size === "H"
+              ? "bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-md"
+              : "text-gray-600 hover:bg-gray-100"
+              }`}
           >
             Half
           </button>
           <button
             onClick={() => setSize("F")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              size === "F"
-                ? "bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-md"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${size === "F"
+              ? "bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-md"
+              : "text-gray-600 hover:bg-gray-100"
+              }`}
           >
             Full
           </button>
@@ -249,11 +262,10 @@ const Items = ({ product, viewMode = "grid" }) => {
             <button
               key={s}
               onClick={() => setSize(s)}
-              className={`px-3 py-1 text-xs rounded-full transition ${
-                s === size
-                  ? "bg-solidOne text-white shadow-sm"
-                  : "border border-gray-300 text-gray-700 hover:bg-gray-100"
-              }`}
+              className={`px-3 py-1 text-xs rounded-full transition ${s === size
+                ? "bg-solidOne text-white shadow-sm"
+                : "border border-gray-300 text-gray-700 hover:bg-gray-100"
+                }`}
             >
               {s}
             </button>

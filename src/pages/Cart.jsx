@@ -11,7 +11,7 @@ const Cart = () => {
   const { createOrderFromCart } = useOrders();
   const { user, isAdminViewingUserModule } = useAuth();
   const navigate = useNavigate();
-  
+
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -24,7 +24,7 @@ const Cart = () => {
   useEffect(() => {
     const loadAddresses = async () => {
       if (!user) return;
-      
+
       const response = await apiService.getAddresses();
       if (response.success) {
         setAddresses(response.data || []);
@@ -34,7 +34,7 @@ const Cart = () => {
         }
       }
     };
-    
+
     loadAddresses();
   }, [user]);
 
@@ -50,96 +50,62 @@ const Cart = () => {
   const tax = subtotal * taxRate;
   const total = subtotal + shippingFee + tax;
 
-  // Handle quick address creation
-  const handleQuickAddAddress = async () => {
-    const fullName = prompt("Full Name:");
-    const phone = prompt("Phone:");
-    const address = prompt("Street Address:");
-    const city = prompt("City:");
-    const state = prompt("State:");
-    const zipCode = prompt("ZIP Code:");
-    
-    if (fullName && phone && address && city && state && zipCode) {
-      const response = await apiService.createAddress({
-        full_name: fullName,
-        phone: phone,
-        address: address,
-        city: city,
-        state: state,
-        country: "India",
-        zip_code: zipCode,
-        landmark: "",
-        is_default: true
-      });
-      
-      if (response.success) {
-        toast.success("Address added!");
-        // Reload addresses
-        const addressesResponse = await apiService.getAddresses();
-        if (addressesResponse.success) {
-          setAddresses(addressesResponse.data || []);
-          const newAddr = addressesResponse.data[addressesResponse.data.length - 1];
-          if (newAddr) {
-            setSelectedAddress(newAddr.ID);
-          }
-        }
-      } else {
-        toast.error("Failed to add address");
-      }
-    }
+  // Navigate to profile address section to add address properly
+  const handleQuickAddAddress = () => {
+    navigate("/profile", { state: { activeSection: "addresses" } });
   };
 
   // Place order
- const handleCheckout = async () => {
-  if (!user) {
-    toast.error("Please login to place an order 🚨");
-    // navigate("/login");
-    return;
-  }
+  const handleCheckout = async () => {
+    if (!user) {
+      toast.error("Please login to place an order 🚨");
+      // navigate("/login");
+      return;
+    }
 
-  if (cart.length === 0) {
-    toast.warning("Your cart is empty! 🛒");
-    return;
-  }
+    if (cart.length === 0) {
+      toast.warning("Your cart is empty! 🛒");
+      return;
+    }
 
-  if (!selectedAddress) {
-    toast.error("Please select a delivery address 📍");
-    return;
-  }
+    if (!selectedAddress) {
+      toast.error("Please select a delivery address 📍");
+      return;
+    }
 
-  console.log(" Checkout data:", {
-    selectedAddress,
-    paymentMethod,
-    addressType: typeof selectedAddress,
-    paymentType: typeof paymentMethod
-  });
+    console.log(" Checkout data:", {
+      selectedAddress,
+      paymentMethod,
+      addressType: typeof selectedAddress,
+      paymentType: typeof paymentMethod
+    });
 
-  setIsProcessing(true);
+    setIsProcessing(true);
 
-  try {
-    const result = await createOrderFromCart(selectedAddress, paymentMethod);
-    
+    try {
+      const result = await createOrderFromCart(selectedAddress, paymentMethod);
+
       console.log(" Order result:", result);
 
-    if (result.success) {
-      resetCart();
-      navigate("/myorders");
-    } else {
-          console.error(" Order failed with error:", result.error);
-      throw new Error(result.error || "Failed to place order");
-    }
-  } catch (err) {
+      if (result.success) {
+        resetCart();
+        navigate("/myorders");
+      } else {
+        console.error(" Order failed with error:", result.error);
+        throw new Error(result.error || "Failed to place order");
+      }
+    } catch (err) {
 
-    console.error(" Checkout error:", {
-      message: err.message,
-      response: err.response,
-      fullError: err
-    });
-    toast.error(err.message || "Failed to place order ❌");
-  } finally {
-    setIsProcessing(false);
-  }
-};
+      console.error(" Checkout error:", {
+        message: err.message,
+        response: err.response,
+        fullError: err
+      });
+      toast.error(err.message || "Failed to place order ❌");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Get price for display
   const getItemPrice = (item) => {
@@ -164,8 +130,8 @@ const Cart = () => {
             >
               <div className="flex items-center gap-4">
                 <img
-                  src={Array.isArray(item.images) && item.images.length > 0 
-                    ? item.images[0] 
+                  src={Array.isArray(item.images) && item.images.length > 0
+                    ? item.images[0]
                     : "/images/placeholder.png"}
                   alt={item.title}
                   className="w-16 h-16 rounded-full object-cover"
@@ -195,7 +161,7 @@ const Cart = () => {
               </div>
               <div className="flex items-center gap-6">
                 <p className="font-bold">
-                  ${(getItemPrice(item) * item.qty).toFixed(2)}
+                  ₹{(getItemPrice(item) * item.qty).toFixed(2)}
                 </p>
                 <button
                   onClick={() => removeFromCart(item.id, item.size)}
@@ -228,7 +194,7 @@ const Cart = () => {
               </button>
             )}
           </div>
-          
+
           {addresses.length === 0 ? (
             <div className="text-sm bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
               <p className="text-yellow-800 mb-2">⚠️ No delivery address found</p>
@@ -261,21 +227,19 @@ const Cart = () => {
           <div className="flex gap-2 mt-2">
             <button
               onClick={() => setPaymentMethod("cod")}
-              className={`px-3 py-1 md:px-4 md:py-2 border rounded text-sm md:text-base ${
-                paymentMethod === "cod"
-                  ? "bg-red-500 text-white border-red-500"
-                  : "bg-white hover:bg-gray-50"
-              }`}
+              className={`px-3 py-1 md:px-4 md:py-2 border rounded text-sm md:text-base ${paymentMethod === "cod"
+                ? "bg-red-500 text-white border-red-500"
+                : "bg-white hover:bg-gray-50"
+                }`}
             >
               Cash On Delivery
             </button>
             <button
               onClick={() => setPaymentMethod("razorpay")}
-              className={`px-3 py-1 md:px-4 md:py-2 border rounded text-sm md:text-base ${
-                paymentMethod === "razorpay"
-                  ? "bg-red-500 text-white border-red-500"
-                  : "bg-white hover:bg-gray-50"
-              }`}
+              className={`px-3 py-1 md:px-4 md:py-2 border rounded text-sm md:text-base ${paymentMethod === "razorpay"
+                ? "bg-red-500 text-white border-red-500"
+                : "bg-white hover:bg-gray-50"
+                }`}
             >
               Razorpay
             </button>
@@ -286,23 +250,22 @@ const Cart = () => {
 
         {/* Totals */}
         <div className="space-y-1 text-sm md:text-base">
-          <p>Subtotal: ${subtotal.toFixed(2)}</p>
-          <p>Shipping Fee: ${shippingFee}</p>
-          <p>Tax (2%): ${tax.toFixed(2)}</p>
+          <p>Subtotal: ₹{subtotal.toFixed(2)}</p>
+          <p>Shipping Fee: ₹{shippingFee}</p>
+          <p>Tax (2%): ₹{tax.toFixed(2)}</p>
         </div>
 
         <h3 className="font-bold text-lg md:text-xl lg:text-2xl">
-          Total: ${total.toFixed(2)}
+          Total: ₹{total.toFixed(2)}
         </h3>
 
         <button
           onClick={handleCheckout}
           disabled={isProcessing || cart.length === 0 || !selectedAddress || isAdminViewingUserModule}
-          className={`w-full py-2 md:py-3 lg:py-4 text-sm md:text-base lg:text-lg rounded mt-3 ${
-            isProcessing || cart.length === 0 || !selectedAddress || isAdminViewingUserModule
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-red-500 hover:bg-red-600 text-white"
-          }`}
+          className={`w-full py-2 md:py-3 lg:py-4 text-sm md:text-base lg:text-lg rounded mt-3 ${isProcessing || cart.length === 0 || !selectedAddress || isAdminViewingUserModule
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-red-500 hover:bg-red-600 text-white"
+            }`}
         >
           {isAdminViewingUserModule ? "View-only mode" : isProcessing ? "Processing..." : "Proceed to Order"}
         </button>
@@ -312,10 +275,10 @@ const Cart = () => {
           const stock = parseInt(item.stock) || 0;
           return item.qty > stock;
         }) && (
-          <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
-            ⚠️ Some items in your cart exceed available stock. Please adjust quantities.
-          </div>
-        )}
+            <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
+              ⚠️ Some items in your cart exceed available stock. Please adjust quantities.
+            </div>
+          )}
       </div>
     </div>
   );

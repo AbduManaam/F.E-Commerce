@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import goApi from "../../Api/Api";
 
 const UserView = () => {
   const { id } = useParams();
@@ -12,10 +12,10 @@ const UserView = () => {
     const fetchUserData = async () => {
       try {
         const [userRes, ordersRes] = await Promise.all([
-          axios.get(`http://127.0.0.1:8080/users/${id}`),
-          axios.get(`http://127.0.0.1:8080/orders?userId=${id}`)
+          goApi.get(`/admin/users/${id}`),
+          goApi.get(`/admin/users/${id}/orders`)
         ]);
-        
+
         setUser(userRes.data);
         setUserOrders(ordersRes.data);
       } catch (err) {
@@ -24,16 +24,28 @@ const UserView = () => {
     };
 
     fetchUserData();
-    
-    // Real-time updates
-    const interval = setInterval(fetchUserData, 10000);
-    return () => clearInterval(interval);
   }, [id]);
+
+  const handleRefresh = () => {
+    const fetchUserData = async () => {
+      try {
+        const [userRes, ordersRes] = await Promise.all([
+          goApi.get(`/admin/users/${id}`),
+          goApi.get(`/admin/users/${id}/orders`)
+        ]);
+        setUser(userRes.data);
+        setUserOrders(ordersRes.data);
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+      }
+    };
+    fetchUserData();
+  };
 
   if (!user) return <p className="p-8 text-white">Loading...</p>;
 
   const totalSpent = userOrders.reduce((sum, order) => sum + (Number(order.amount) || 0), 0);
-  const recentOrder = userOrders.length > 0 
+  const recentOrder = userOrders.length > 0
     ? userOrders.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date))[0]
     : null;
 
@@ -42,12 +54,18 @@ const UserView = () => {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold text-indigo-700">User Details</h2>
-          <Link 
-            to="/admin/users" 
+          <Link
+            to="/admin/users"
             className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition"
           >
             ← Back to Users
           </Link>
+          <button
+            onClick={handleRefresh}
+            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition ml-2"
+          >
+            ↻ Refresh
+          </button>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
@@ -60,22 +78,21 @@ const UserView = () => {
                 <p><strong className="text-gray-700">User ID:</strong> {user.id}</p>
               </div>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Activity Summary</h3>
               <div className="space-y-3">
                 <p>
-                  <strong className="text-gray-700">Status:</strong> 
-                  <span className={`ml-2 px-3 py-1 rounded-full text-sm ${
-                    userOrders.length > 0 
-                      ? "bg-green-100 text-green-700" 
-                      : "bg-red-100 text-red-700"
-                  }`}>
-                    {userOrders.length > 0 ? "Active" : "Inactive"}
+                  <strong className="text-gray-700">Status:</strong>
+                  <span className={`ml-2 px-3 py-1 rounded-full text-sm ${user.is_verified
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                    }`}>
+                    {user.is_verified ? "Verified" : "Unverified"}
                   </span>
                 </p>
                 <p><strong className="text-gray-700">Total Orders:</strong> {userOrders.length}</p>
-                <p><strong className="text-gray-700">Total Spent:</strong> ${totalSpent.toFixed(2)}</p>
+                <p><strong className="text-gray-700">Total Spent:</strong> ₹{totalSpent.toFixed(2)}</p>
                 {recentOrder && (
                   <p><strong className="text-gray-700">Last Order:</strong> {new Date(recentOrder.createdAt || recentOrder.date).toLocaleDateString()}</p>
                 )}
@@ -99,7 +116,7 @@ const UserView = () => {
                       </p>
                       <p className="text-sm text-gray-500">Status: {order.status || "Pending"}</p>
                     </div>
-                    <p className="font-bold text-indigo-600">${Number(order.amount || 0).toFixed(2)}</p>
+                    <p className="font-bold text-indigo-600">₹{Number(order.amount || 0).toFixed(2)}</p>
                   </div>
                   {order.items && order.items.length > 0 && (
                     <p className="text-sm text-gray-600 mt-2">

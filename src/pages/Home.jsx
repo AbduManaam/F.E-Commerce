@@ -9,44 +9,46 @@ const Home = () => {
   const [homeData, setHomeData] = useState(null);
   const [loading, setLoading] = useState(true);
 
- 
-const transformProduct = (product) => {
-  // ✅ Debug log
-  console.log("🔍 TRANSFORMING:", {
-    raw: product,
-    has_image_url: !!product.image_url,
-    image_url_value: product.image_url
-  });
-  
-  let imageUrls = [];
-  
-  if (product.image_url) {
-    imageUrls = [product.image_url];
-  }if (product.image_url) {
-    imageUrls = [product.image_url];
-} else if (product.ImageURL) {  // ← Add this
-    imageUrls = [product.ImageURL];
-}
-  
-  console.log("📸 EXTRACTED IMAGES:", imageUrls);  // ✅ This will show what's extracted
-  
-  if (imageUrls.length === 0) {
-    imageUrls = ["/images/placeholder.png"];
-  }
 
-  return {
-          id: Number(product.ID) || Number(product.id),
-    title: product.name || product.Name,
-    description: product.description || product.Description || "",
-    images: imageUrls,
-    price: product.price || product.FinalPrice || product.Price || 0,
-    stock: product.stock || product.Stock,
-    in_stock: product.in_stock,
-    category_name: product.category || product.CategoryName || product.category_name,
-    sizes: product.sizes || [],
-    _original: product
+  const transformProduct = (product) => {
+    // ✅ Debug log
+    console.log("🔍 TRANSFORMING:", {
+      raw: product,
+      has_image_url: !!product.image_url,
+      image_url_value: product.image_url
+    });
+
+    let imageUrls = [];
+
+    if (product.image_url) {
+      imageUrls = [product.image_url];
+    } if (product.image_url) {
+      imageUrls = [product.image_url];
+    } else if (product.ImageURL) {  // ← Add this
+      imageUrls = [product.ImageURL];
+    }
+
+    console.log("📸 EXTRACTED IMAGES:", imageUrls);  // ✅ This will show what's extracted
+
+    if (imageUrls.length === 0) {
+      imageUrls = ["/images/placeholder.png"];
+    }
+
+    return {
+      id: Number(product.ID) || Number(product.id),
+      title: product.name || product.Name,
+      description: product.description || product.Description || "",
+      images: imageUrls,
+      price: product.half_price || product.full_price || product.price || product.FinalPrice || product.Price || 0,
+      halfPrice: product.half_price || 0,
+      fullPrice: product.full_price || 0,
+      stock: product.stock || product.Stock,
+      in_stock: product.in_stock,
+      category_name: product.category || product.CategoryName || product.category_name,
+      sizes: product.sizes || [],
+      _original: product
+    };
   };
-};
 
   useEffect(() => {
     const fetchHome = async () => {
@@ -56,18 +58,18 @@ const transformProduct = (product) => {
         console.log("HOME RESPONSE:", res);
 
         if (res.success) {
-          
-          
-          
-            // ✅ Transform new_arrivals products
-           console.log("🔍 RAW NEW ARRIVALS FROM BACKEND:", res.data.new_arrivals);
+
+
+
+          // ✅ Transform new_arrivals products
+          console.log("🔍 RAW NEW ARRIVALS FROM BACKEND:", res.data.new_arrivals);
 
 
           const transformedData = {
             ...res.data,
             new_arrivals: (res.data.new_arrivals || []).map(transformProduct)
           };
-          
+
           console.log("TRANSFORMED NEW ARRIVALS:", transformedData.new_arrivals);
 
 
@@ -75,9 +77,9 @@ const transformProduct = (product) => {
 
 
           console.log("🖼️ IMAGE URLS:", transformedData.new_arrivals.map(p => ({
-          name: p.title,
-          images: p.images
-        })));
+            name: p.title,
+            images: p.images
+          })));
 
 
 

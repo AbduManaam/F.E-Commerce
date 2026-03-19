@@ -80,12 +80,9 @@ export default function AdminProducts() {
         const editPayload = {
           name: form.name,
           description: form.description,
-          category: form.category_id,
           stock: parseInt(form.stock) || 0,
-          prices: [
-            ...(form.half_price ? [{ size: "H", price: parseFloat(form.half_price) }] : []),
-            { size: "F", price: parseFloat(form.full_price) },
-          ],
+          ...(form.half_price ? { half_price: parseFloat(form.half_price) } : {}),
+          full_price: parseFloat(form.full_price),
         };
         const id = editingProduct.id || editingProduct.ID;
         await apiService.client.put(`/admin/products/${id}`, editPayload);
@@ -137,7 +134,7 @@ export default function AdminProducts() {
     } catch { showMsg("error", "Failed to upload image"); }
   };
 
-const uniqueCategories = [...new Set(products.map(p => p.category_name || p.category || p.Category).filter(Boolean))];
+  const uniqueCategories = [...new Set(products.map(p => p.category_name || p.category || p.Category).filter(Boolean))];
 
   const filtered = products.filter(p => {
     const name = (p.name || p.Name || "").toLowerCase();
@@ -217,11 +214,10 @@ const uniqueCategories = [...new Set(products.map(p => p.category_name || p.cate
                     <td className="p-3 text-gray-500">#{id}</td>
                     <td className="p-3 font-semibold text-gray-700">{getPrice(product)}</td>
                     <td className="p-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        (product.stock || product.Stock || 0) === 0 ? "bg-red-100 text-red-600" :
-                        (product.stock || product.Stock || 0) <= 10 ? "bg-orange-100 text-orange-600" :
-                        "bg-green-100 text-green-600"
-                      }`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${(product.stock || product.Stock || 0) === 0 ? "bg-red-100 text-red-600" :
+                          (product.stock || product.Stock || 0) <= 10 ? "bg-orange-100 text-orange-600" :
+                            "bg-green-100 text-green-600"
+                        }`}>
                         {product.stock ?? product.Stock ?? 0}
                       </span>
                     </td>

@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { useOrders } from "./OrderContext";
 import { useAuth } from "../Components/AuthContext";
 import { generateInvoice } from "../utils/generateInvoice";
-import { 
-  Package, 
-  Truck, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Package,
+  Truck,
+  CheckCircle,
+  XCircle,
   Clock,
   ChevronDown,
   ChevronUp,
@@ -38,7 +38,7 @@ const MyOrders = () => {
     setDownloadingId(order.id);
     try {
       generateInvoice(order, {
-        name:  user?.name  || user?.username || "",
+        name: user?.name || user?.username || "",
         email: user?.email || "",
         phone: user?.phone || "",
       });
@@ -53,18 +53,18 @@ const MyOrders = () => {
   // ── Status Badge ────────────────────────────────────────────
   const getStatusBadge = (status) => {
     const statusConfig = {
-      pending:             { color: "bg-yellow-100 text-yellow-800",  icon: Clock,        label: "Pending"             },
-      confirmed:           { color: "bg-blue-100 text-blue-800",      icon: Package,      label: "Confirmed"           },
-      paid:                { color: "bg-green-100 text-green-800",    icon: CheckCircle,  label: "Paid"                },
-      shipped:             { color: "bg-purple-100 text-purple-800",  icon: Truck,        label: "Shipped"             },
-      delivered:           { color: "bg-green-100 text-green-800",    icon: CheckCircle,  label: "Delivered"           },
-      cancelled:           { color: "bg-red-100 text-red-800",        icon: XCircle,      label: "Cancelled"           },
-      partially_cancelled: { color: "bg-orange-100 text-orange-800",  icon: XCircle,      label: "Partially Cancelled" },
-      refunded:            { color: "bg-purple-50 text-purple-700",   icon: CheckCircle,  label: "Refunded"            },
+      pending: { color: "bg-yellow-100 text-yellow-800", icon: Clock, label: "Pending" },
+      confirmed: { color: "bg-blue-100 text-blue-800", icon: Package, label: "Confirmed" },
+      paid: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: "Paid" },
+      shipped: { color: "bg-purple-100 text-purple-800", icon: Truck, label: "Shipped" },
+      delivered: { color: "bg-green-100 text-green-800", icon: CheckCircle, label: "Delivered" },
+      cancelled: { color: "bg-red-100 text-red-800", icon: XCircle, label: "Cancelled" },
+      partially_cancelled: { color: "bg-orange-100 text-orange-800", icon: XCircle, label: "Partially Cancelled" },
+      refunded: { color: "bg-purple-50 text-purple-700", icon: CheckCircle, label: "Refunded" },
     };
 
     const config = statusConfig[status?.toLowerCase()] || statusConfig.pending;
-    const Icon   = config.icon;
+    const Icon = config.icon;
 
     return (
       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
@@ -76,10 +76,10 @@ const MyOrders = () => {
 
   const getItemStatusBadge = (status) => {
     const statusConfig = {
-      pending:   { color: "bg-yellow-50 text-yellow-700 border-yellow-200" },
-      confirmed: { color: "bg-blue-50 text-blue-700 border-blue-200"       },
-      cancelled: { color: "bg-red-50 text-red-700 border-red-200"          },
-      refunded:  { color: "bg-purple-50 text-purple-700 border-purple-200" },
+      pending: { color: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+      confirmed: { color: "bg-blue-50 text-blue-700 border-blue-200" },
+      cancelled: { color: "bg-red-50 text-red-700 border-red-200" },
+      refunded: { color: "bg-purple-50 text-purple-700 border-purple-200" },
     };
     const config = statusConfig[status?.toLowerCase()] || statusConfig.pending;
     return (
@@ -155,11 +155,10 @@ const MyOrders = () => {
           <button
             key={status}
             onClick={() => setFilter(status)}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              filter === status
+            className={`px-4 py-2 rounded-lg font-medium transition ${filter === status
                 ? "bg-amber-500 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+              }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </button>
@@ -179,7 +178,7 @@ const MyOrders = () => {
         <div className="space-y-4">
           {filteredOrders.map((order) => {
             const isExpanded = expandedOrders.has(order.id);
-            const orderDate  = new Date(order.created_at).toLocaleDateString("en-US", {
+            const orderDate = new Date(order.created_at).toLocaleDateString("en-US", {
               year: "numeric", month: "short", day: "numeric",
             });
 
@@ -199,11 +198,11 @@ const MyOrders = () => {
                     <div className="text-right flex flex-col items-end gap-2">
                       {getStatusBadge(order.status)}
                       <p className="text-lg font-bold">
-                        ${order.final_total?.toFixed(2) || "0.00"}
+                        ₹{order.final_total?.toFixed(2) || "0.00"}
                       </p>
                       {order.discount > 0 && (
                         <p className="text-sm text-green-600">
-                          Saved ${order.discount.toFixed(2)}
+                          Saved ₹{order.discount.toFixed(2)}
                         </p>
                       )}
 
@@ -228,13 +227,12 @@ const MyOrders = () => {
                     <span>{order.items?.length || 0} items</span>
                     <span>Payment: {order.payment_method || "COD"}</span>
                     <span
-                      className={`font-medium ${
-                        order.payment_status === "paid"
+                      className={`font-medium ${order.payment_status === "paid"
                           ? "text-green-600"
                           : order.status === "cancelled"
-                          ? "text-gray-400"
-                          : "text-yellow-600"
-                      }`}
+                            ? "text-gray-400"
+                            : "text-yellow-600"
+                        }`}
                     >
                       {getPaymentStatusLabel(
                         order.payment_status,
@@ -281,18 +279,18 @@ const MyOrders = () => {
                                     {item.product?.name || "Unknown Product"}
                                   </h5>
                                   <p className="text-sm text-gray-600">
-                                    Quantity: {item.quantity} × ${item.final_price?.toFixed(2)}
+                                    Quantity: {item.quantity} × ₹{item.final_price?.toFixed(2)}
                                   </p>
                                   {item.discount_amount > 0 && (
                                     <p className="text-sm text-green-600">
-                                      Discount: -${item.discount_amount.toFixed(2)}
+                                      Discount: -₹{item.discount_amount.toFixed(2)}
                                     </p>
                                   )}
                                 </div>
                                 <div className="text-right">
                                   {getItemStatusBadge(item.status)}
                                   <p className="font-bold mt-2">
-                                    ${item.subtotal?.toFixed(2)}
+                                    ₹{item.subtotal?.toFixed(2)}
                                   </p>
                                 </div>
                               </div>
@@ -373,13 +371,13 @@ const MyOrders = () => {
                     {/* Cancel Order */}
                     {(order.status === "pending" ||
                       order.status === "partially_cancelled") && (
-                      <button
-                        onClick={() => handleCancelOrder(order.id)}
-                        className="w-full py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
-                      >
-                        Cancel Entire Order
-                      </button>
-                    )}
+                        <button
+                          onClick={() => handleCancelOrder(order.id)}
+                          className="w-full py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
+                        >
+                          Cancel Entire Order
+                        </button>
+                      )}
                   </div>
                 )}
               </div>

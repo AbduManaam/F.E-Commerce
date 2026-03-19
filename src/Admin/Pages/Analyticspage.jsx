@@ -9,10 +9,10 @@ import {
   RefreshCw, AlertTriangle, CheckCircle, XCircle, Clock
 } from "lucide-react";
 
-const fmt = (n) => `$${(n || 0).toFixed(2)}`;
+const fmt = (n) => `₹${(n || 0).toFixed(2)}`;
 const pct = (a, b) => (b ? ((a / b) * 100).toFixed(1) : 0);
 
-const DAY = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const DAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const StatCard = ({ icon: Icon, label, value, sub, color, bg }) => (
   <div className={`rounded-2xl p-5 flex items-center gap-4 shadow-sm border ${bg}`}>
@@ -35,11 +35,11 @@ const SectionTitle = ({ children }) => (
 );
 
 export default function AnalyticsPage() {
-  const [orders,     setOrders]     = useState([]);
-  const [users,      setUsers]      = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
-  const [products,   setProducts]   = useState([]);
-  const [loading,    setLoading]    = useState(true);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -71,30 +71,30 @@ export default function AnalyticsPage() {
 
   const getStatus = (o) => (o.Status || o.status || "").toLowerCase();
   const getPaymentStatus = (o) => (o.PaymentStatus || o.payment_status || "").toLowerCase();
-  const getTotal  = (o) => o.FinalTotal || o.final_total || o.Total || o.total || 0;
+  const getTotal = (o) => o.FinalTotal || o.final_total || o.Total || o.total || 0;
 
   const delivered = orders.filter(o => getStatus(o) === "delivered");
-  const pending   = orders.filter(o => getStatus(o) === "pending");
+  const pending = orders.filter(o => getStatus(o) === "pending");
   const cancelled = orders.filter(o => getStatus(o) === "cancelled");
-  const refunded  = orders.filter(o =>
+  const refunded = orders.filter(o =>
     ["refunded", "refund"].includes(getStatus(o)) || getPaymentStatus(o) === "refunded"
   );
-  const shipped   = orders.filter(o => ["shipped", "processing"].includes(getStatus(o)));
+  const shipped = orders.filter(o => ["shipped", "processing"].includes(getStatus(o)));
 
-  const totalRevenue   = delivered.reduce((s, o) => s + getTotal(o), 0);
+  const totalRevenue = delivered.reduce((s, o) => s + getTotal(o), 0);
   const refundedAmount = refunded.reduce((s, o) => s + getTotal(o), 0);
-  const netRevenue     = totalRevenue - refundedAmount;
-  const avgOrderValue  = delivered.length ? totalRevenue / delivered.length : 0;
+  const netRevenue = totalRevenue - refundedAmount;
+  const avgOrderValue = delivered.length ? totalRevenue / delivered.length : 0;
 
   const blockedUsers = users.filter(u => u.IsBlocked || u.is_blocked);
-  const lowStock     = products.filter(p => (p.stock ?? p.Stock ?? 0) <= 5);
+  const lowStock = products.filter(p => (p.stock ?? p.Stock ?? 0) <= 5);
 
   const pieData = [
     { name: "Delivered", value: delivered.length, color: "#10b981" },
-    { name: "Pending",   value: pending.length,   color: "#f59e0b" },
-    { name: "Shipped",   value: shipped.length,   color: "#3b82f6" },
+    { name: "Pending", value: pending.length, color: "#f59e0b" },
+    { name: "Shipped", value: shipped.length, color: "#3b82f6" },
     { name: "Cancelled", value: cancelled.length, color: "#ef4444" },
-    { name: "Refunded",  value: refunded.length,  color: "#8b5cf6" },
+    { name: "Refunded", value: refunded.length, color: "#8b5cf6" },
   ].filter(d => d.value > 0);
 
   const last7 = Array.from({ length: 7 }, (_, i) => {
@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
     const uid = o.UserID || o.user_id || o.User?.ID;
     const name = o.User?.Name || o.user?.name || `User #${uid}`;
     if (!customerMap[uid]) customerMap[uid] = { name, total: 0, orders: 0 };
-    customerMap[uid].total  += getTotal(o);
+    customerMap[uid].total += getTotal(o);
     customerMap[uid].orders += 1;
   });
   const topCustomers = Object.values(customerMap)
@@ -165,10 +165,10 @@ export default function AnalyticsPage() {
       <section>
         <SectionTitle>Financial Summary</SectionTitle>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard icon={TrendingUp}   label="Total Revenue"    value={fmt(totalRevenue)}   sub={`${delivered.length} delivered orders`} color="bg-emerald-500" bg="bg-white border-emerald-100" />
-          <StatCard icon={RefreshCw}    label="Refunded Amount"  value={fmt(refundedAmount)} sub={`${refunded.length} refunded orders`}   color="bg-purple-500"  bg="bg-white border-purple-100" />
-          <StatCard icon={TrendingUp}   label="Net Revenue"      value={fmt(netRevenue)}     sub="After refunds"                          color="bg-blue-500"    bg="bg-white border-blue-100" />
-          <StatCard icon={ShoppingBag}  label="Avg Order Value"  value={fmt(avgOrderValue)}  sub="Per delivered order"                    color="bg-orange-500"  bg="bg-white border-orange-100" />
+          <StatCard icon={TrendingUp} label="Total Revenue" value={fmt(totalRevenue)} sub={`${delivered.length} delivered orders`} color="bg-emerald-500" bg="bg-white border-emerald-100" />
+          <StatCard icon={RefreshCw} label="Refunded Amount" value={fmt(refundedAmount)} sub={`${refunded.length} refunded orders`} color="bg-purple-500" bg="bg-white border-purple-100" />
+          <StatCard icon={TrendingUp} label="Net Revenue" value={fmt(netRevenue)} sub="After refunds" color="bg-blue-500" bg="bg-white border-blue-100" />
+          <StatCard icon={ShoppingBag} label="Avg Order Value" value={fmt(avgOrderValue)} sub="Per delivered order" color="bg-orange-500" bg="bg-white border-orange-100" />
         </div>
       </section>
 
@@ -178,10 +178,10 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[
             { icon: CheckCircle, label: "Delivered", value: delivered.length, sub: `${pct(delivered.length, orders.length)}% of total`, color: "bg-emerald-500", bg: "bg-white border-emerald-100" },
-            { icon: Clock,       label: "Pending",   value: pending.length,   sub: `${pct(pending.length, orders.length)}% of total`,   color: "bg-amber-500",   bg: "bg-white border-amber-100" },
-            { icon: Package,     label: "Shipped",   value: shipped.length,   sub: `${pct(shipped.length, orders.length)}% of total`,   color: "bg-blue-500",    bg: "bg-white border-blue-100" },
-            { icon: XCircle,     label: "Cancelled", value: cancelled.length, sub: `${pct(cancelled.length, orders.length)}% of total`, color: "bg-red-500",     bg: "bg-white border-red-100" },
-            { icon: RefreshCw,   label: "Refunded",  value: refunded.length,  sub: `${pct(refunded.length, orders.length)}% of total`,  color: "bg-purple-500",  bg: "bg-white border-purple-100" },
+            { icon: Clock, label: "Pending", value: pending.length, sub: `${pct(pending.length, orders.length)}% of total`, color: "bg-amber-500", bg: "bg-white border-amber-100" },
+            { icon: Package, label: "Shipped", value: shipped.length, sub: `${pct(shipped.length, orders.length)}% of total`, color: "bg-blue-500", bg: "bg-white border-blue-100" },
+            { icon: XCircle, label: "Cancelled", value: cancelled.length, sub: `${pct(cancelled.length, orders.length)}% of total`, color: "bg-red-500", bg: "bg-white border-red-100" },
+            { icon: RefreshCw, label: "Refunded", value: refunded.length, sub: `${pct(refunded.length, orders.length)}% of total`, color: "bg-purple-500", bg: "bg-white border-purple-100" },
           ].map((s, i) => <StatCard key={i} {...s} />)}
         </div>
       </section>
@@ -197,7 +197,7 @@ export default function AnalyticsPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="day" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip formatter={(v) => [`$${v.toFixed(2)}`, "Revenue"]} />
+              <Tooltip formatter={(v) => [`₹${v.toFixed(2)}`, "Revenue"]} />
               <Bar dataKey="revenue" fill="#6366f1" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -242,10 +242,10 @@ export default function AnalyticsPage() {
           <SectionTitle>Users</SectionTitle>
           <div className="space-y-3">
             {[
-              { label: "Total Users",    value: totalUsers,                          color: "text-indigo-600" },
-              { label: "Active Users",   value: totalUsers - blockedUsers.length,    color: "text-emerald-600" },
-              { label: "Blocked Users",  value: blockedUsers.length,                 color: "text-red-600" },
-              { label: "New This Month", value: newUsersThisMonth,                   color: "text-blue-600" },
+              { label: "Total Users", value: totalUsers, color: "text-indigo-600" },
+              { label: "Active Users", value: totalUsers - blockedUsers.length, color: "text-emerald-600" },
+              { label: "Blocked Users", value: blockedUsers.length, color: "text-red-600" },
+              { label: "New This Month", value: newUsersThisMonth, color: "text-blue-600" },
             ].map((s, i) => (
               <div key={i} className="flex justify-between items-center py-2 border-b last:border-0">
                 <span className="text-sm text-gray-500">{s.label}</span>
@@ -330,9 +330,8 @@ export default function AnalyticsPage() {
                       <AlertTriangle className="w-4 h-4 text-amber-500" />
                       <span className="text-sm font-medium text-gray-700">{p.name || p.Name}</span>
                     </div>
-                    <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${
-                      stock === 0 ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
-                    }`}>
+                    <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${stock === 0 ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
+                      }`}>
                       {stock === 0 ? "Out of stock" : `${stock} left`}
                     </span>
                   </div>

@@ -22,62 +22,62 @@ export const CartProvider = ({ children }) => {
   }, [user]);
 
 
-  
- // ✅ Load cart from backend
-const loadCart = async () => {
-  if (!user) return;
-  
-  try {
-    const response = await apiService.getCart();
-    
-    if (response.success) {
-      const cartData = response.data;
-      
-      const transformedItems = cartData.Items?.map(item => {
-        console.log("🔍 Raw cart item from backend:", item);
-        const product = item.Product || {};
-        const imageUrls = product.Images?.map(img => img.URL || img.url) || [];
-        
-        // Handle price - check if product has multiple prices
-        let priceData;
-        if (product.Prices && Array.isArray(product.Prices) && product.Prices.length > 0) {
-          // Convert prices array to object {H: 10, F: 20}
-          priceData = product.Prices.reduce((acc, p) => {
-            acc[p.Type] = p.Price;
-            return acc;
-          }, {});
-        } else {
-          // Single price
-          priceData = product.FinalPrice || product.Price || 0;
-        }
-        
-        return {
-          id: item.ProductID,
-          cartItemId: item.ID,
-          title: product.Name || "Unknown Product",
-          description: product.Description || "",
-          price: priceData,  // ✅ Can be object or number
-          images: imageUrls.length > 0 ? imageUrls : ["/images/placeholder.png"],
-          qty: item.Quantity,
-          size: item.Size || 'H',  // Default to Half
-          stock: product.Stock || 0,
-          category_name: product.Category?.Name || "",
-        };
-      }) || [];
-      
-      setCart(transformedItems);
-      setCartCount(transformedItems.reduce((acc, item) => acc + item.qty, 0));
+
+  // ✅ Load cart from backend
+  const loadCart = async () => {
+    if (!user) return;
+
+    try {
+      const response = await apiService.getCart();
+
+      if (response.success) {
+        const cartData = response.data;
+
+        const transformedItems = cartData.Items?.map(item => {
+          console.log("🔍 Raw cart item from backend:", item);
+          const product = item.Product || {};
+          const imageUrls = product.Images?.map(img => img.URL || img.url) || [];
+
+          // Handle price - check if product has multiple prices
+          let priceData;
+          if (product.Prices && Array.isArray(product.Prices) && product.Prices.length > 0) {
+            // Convert prices array to object {H: 10, F: 20}
+            priceData = product.Prices.reduce((acc, p) => {
+              acc[p.Type] = p.Price;
+              return acc;
+            }, {});
+          } else {
+            // Single price
+            priceData = product.FinalPrice || product.Price || 0;
+          }
+
+          return {
+            id: item.ProductID,
+            cartItemId: item.ID,
+            title: product.Name || "Unknown Product",
+            description: product.Description || "",
+            price: priceData,  // ✅ Can be object or number
+            images: imageUrls.length > 0 ? imageUrls : ["/images/placeholder.png"],
+            qty: item.Quantity,
+            size: item.Type || 'H',  // Read Type from backend
+            stock: product.Stock || 0,
+            category_name: product.Category?.Name || "",
+          };
+        }) || [];
+
+        setCart(transformedItems);
+        setCartCount(transformedItems.reduce((acc, item) => acc + item.qty, 0));
+      }
+    } catch (err) {
+      console.error("Failed to load cart:", err);
     }
-  } catch (err) {
-    console.error("Failed to load cart:", err);
-  }
-};
+  };
 
   // ✅ Add to cart using POST /api/cart
   const addToCart = async (product, size) => {
     if (!user) {
       toast.info("Please login to add items to cart");
-    
+
       return;
     }
     if (isAdminViewingUserModule) {
@@ -85,7 +85,8 @@ const loadCart = async () => {
       return;
     }
 
-    const existing = cart.find((item) => item.id === product.id && item.size === size);
+    const sizeType = size || 'H';
+    const existing = cart.find((item) => item.id === product.id && item.size === sizeType);
 
     if (existing) {
       toast.info("🛒 This product is already in your cart!");
@@ -93,111 +94,111 @@ const loadCart = async () => {
     }
 
     try {
-      const response = await apiService.addToCart(product.id, 1);
-      
+      const response = await apiService.addToCart(product.id, 1, sizeType);
+
       if (response.success) {
-      await loadCart(); 
-      toast.success("✅ Product added to cart!");
-    }else{
-      toast.error(response.message||"Failed to AddCart");
-    }
+        await loadCart();
+        toast.success("✅ Product added to cart!");
+      } else {
+        toast.error(response.message || "Failed to AddCart");
+      }
     } catch (err) {
       console.error("Add to cart failed:", err);
-      toast.error(err?.message||"Failed to add to cart");
+      toast.error(err?.message || "Failed to add to cart");
     }
   };
 
-const removeFromCart = async (id, size) => {
-  if (!user) {
-    // navigate("/login");
+  const removeFromCart = async (id, size) => {
+    if (!user) {
+      // navigate("/login");
       toast.info("Please login to add remove to cart");
-    return;
-  }
-  if (isAdminViewingUserModule) {
-    toast.info("View-only mode: Admins cannot modify cart.");
-    return;
-  }
-
-  const item = cart.find((item) => item.id === id && item.size === size);
-  if (!item) return;
-
-  // ✅ Optimistically remove from UI first
-  const newCart = cart.filter((item) => !(item.id === id && item.size === size));
-  setCart(newCart);
-  setCartCount(newCart.reduce((acc, item) => acc + (item.qty || 1), 0));
-
-  try {
-    const response = await apiService.removeCartItem(item.cartItemId || item.id);
-    if (!response.success) {
-      // ✅ If API fails, reload cart to get correct state
-      await loadCart();
-      toast.error("Failed to remove item");
-    } else {
-      toast.info("🗑️ Product removed from cart");
+      return;
     }
-  } catch (err) {
-    await loadCart(); // ✅ Re-sync on any error
-    toast.error("Failed to remove from cart");
-  }
-};
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot modify cart.");
+      return;
+    }
+
+    const item = cart.find((item) => item.id === id && item.size === size);
+    if (!item) return;
+
+    // ✅ Optimistically remove from UI first
+    const newCart = cart.filter((item) => !(item.id === id && item.size === size));
+    setCart(newCart);
+    setCartCount(newCart.reduce((acc, item) => acc + (item.qty || 1), 0));
+
+    try {
+      const response = await apiService.removeCartItem(item.cartItemId || item.id);
+      if (!response.success) {
+        // ✅ If API fails, reload cart to get correct state
+        await loadCart();
+        toast.error("Failed to remove item");
+      } else {
+        toast.info("🗑️ Product removed from cart");
+      }
+    } catch (err) {
+      await loadCart(); // ✅ Re-sync on any error
+      toast.error("Failed to remove from cart");
+    }
+  };
 
   // ✅ Update quantity using PUT /api/cart/item/:itemId
- const updateQty = async (id, size, qty) => {
-  if (!user) {
-    // navigate("/login");
+  const updateQty = async (id, size, qty) => {
+    if (!user) {
+      // navigate("/login");
       toast.info("Please login to add update to cart");
-    return;
-  }
-  if (isAdminViewingUserModule) {
-    toast.info("View-only mode: Admins cannot modify cart.");
-    return;
-  }
-
-  try {
-    const item = cart.find((item) => item.id === id && item.size === size);
-    if (!item) {
-      console.error("Cart item not found");
+      return;
+    }
+    if (isAdminViewingUserModule) {
+      toast.info("View-only mode: Admins cannot modify cart.");
       return;
     }
 
-    // ✅ cartItemId should always exist now
-    if (!item.cartItemId) {
-      console.error("Cart item missing cartItemId:", item);
-      toast.error("Invalid cart item");
-      return;
+    try {
+      const item = cart.find((item) => item.id === id && item.size === size);
+      if (!item) {
+        console.error("Cart item not found");
+        return;
+      }
+
+      // ✅ cartItemId should always exist now
+      if (!item.cartItemId) {
+        console.error("Cart item missing cartItemId:", item);
+        toast.error("Invalid cart item");
+        return;
+      }
+
+      const response = await apiService.updateCartItem(item.cartItemId, qty);
+
+      if (response.success) {
+        const newCart = cart.map((cartItem) =>
+          cartItem.id === id && cartItem.size === size
+            ? { ...cartItem, qty }
+            : cartItem
+        );
+        setCart(newCart);
+        setCartCount(newCart.reduce((acc, item) => acc + item.qty, 0));
+        toast.success("Cart updated");
+      }
+    } catch (err) {
+      console.error("Update quantity failed:", err);
+      toast.error("Failed to update quantity");
     }
+  };
 
-    const response = await apiService.updateCartItem(item.cartItemId, qty);
+  // Reset Cart
 
-    if (response.success) {
-      const newCart = cart.map((cartItem) =>
-        cartItem.id === id && cartItem.size === size
-          ? { ...cartItem, qty }
-          : cartItem
-      );
-      setCart(newCart);
-      setCartCount(newCart.reduce((acc, item) => acc + item.qty, 0));
-      toast.success("Cart updated");
-    }
-  } catch (err) {
-    console.error("Update quantity failed:", err);
-    toast.error("Failed to update quantity");
-  }
-};
-
-// Reset Cart
-
-const resetCart = async () => {
-  setCart([]);
-  setCartCount(0);
-  await loadCart();
-};
+  const resetCart = async () => {
+    setCart([]);
+    setCartCount(0);
+    await loadCart();
+  };
 
 
   //  Clear cart
   const clearCart = async () => {
     if (!user) {
-          toast.info("Please login to clear items to cart");
+      toast.info("Please login to clear items to cart");
       return;
     }
     if (isAdminViewingUserModule) {
@@ -208,7 +209,7 @@ const resetCart = async () => {
     try {
       const promises = cart.map(item => apiService.removeCartItem(item.cartItemId || item.id));
       await Promise.all(promises);
-      
+
       setCart([]);
       setCartCount(0);
       toast.info("🛒 Cart cleared");
@@ -220,7 +221,7 @@ const resetCart = async () => {
 
   return (
     <CartContext.Provider
-      value={{ cart, cartCount, addToCart, removeFromCart, updateQty, clearCart, loadCart,resetCart }}
+      value={{ cart, cartCount, addToCart, removeFromCart, updateQty, clearCart, loadCart, resetCart }}
     >
       {children}
     </CartContext.Provider>

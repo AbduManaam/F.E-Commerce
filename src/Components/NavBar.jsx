@@ -1,7 +1,5 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { useCart } from "../pages/CartContext";
-import { useWishlist } from "../pages/WishlistContext";
 
 const NavBar = ({ setmenuOpened }) => {
   const navLinks = [
@@ -9,9 +7,6 @@ const NavBar = ({ setmenuOpened }) => {
     { path: "/menu", title: "Menu" },
     { path: "/contact", title: "Contact" },
   ];
-
-  const { cartCount } = useCart();
-  const { wishlist } = useWishlist();
 
   return (
     <nav className="flex items-center gap-6">

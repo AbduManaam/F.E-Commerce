@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import goApi from "../../Api/Api";
 
 const UserCreate = () => {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const UserCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://127.0.0.1:8080/users", {
+      await goApi.post("/users", {
         ...form,
         id: "U" + Math.floor(Math.random() * 10000), // simple unique ID
       });

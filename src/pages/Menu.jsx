@@ -70,7 +70,8 @@ const Menu = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8080/categories/");
+        const apiBase = import.meta.env.VITE_API_URL || "http://localhost:8080";
+        const res = await fetch(`${apiBase}/categories/`);
         const data = await res.json();
         setCategories(data); // [{ID: 13, Name: "Curry"}, ...]
       } catch (err) {

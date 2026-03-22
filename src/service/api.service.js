@@ -1,19 +1,13 @@
 import axios from 'axios';
 
-// Environment configuration
-const ENV = {
-  development: {
-    API_URL: 'http://localhost:8080',
-    TIMEOUT: 30000,
-  },
-  production: {
-    API_URL: import.meta.env.VITE_API_URL || 'https://api.yourdomain.com',
-    TIMEOUT: 30000,
-  }
+// Environment configuration - VITE_API_URL works in all modes (build-time)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const config = {
+  API_URL,
+  TIMEOUT: 30000,
 };
 
 const currentEnv = import.meta.env.MODE || 'development';
-const config = ENV[currentEnv];
 
 class ApiService {
   constructor() {
